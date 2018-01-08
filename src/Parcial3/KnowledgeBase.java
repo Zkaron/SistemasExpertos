@@ -1,5 +1,7 @@
 package Parcial3;
 
+import Parcial3.modelos.*;
+
 import javax.swing.*;
 import java.sql.*;
 import java.util.LinkedList;
@@ -8,7 +10,7 @@ import java.util.LinkedList;
  * Created by Erik on 9/19/2017.
  */
 public class KnowledgeBase {
-        Connection conn = null;
+    Connection conn = null;
     String url = "jdbc:mysql://localhost:3306/diagnostico";
     String user = "root";
     String pwd = "";
@@ -16,7 +18,7 @@ public class KnowledgeBase {
     public KnowledgeBase() {
         try {
             DriverManager.registerDriver(new org.gjt.mm.mysql.Driver());
-            Connection conn =(Connection) DriverManager.getConnection(url, user, pwd);
+            conn =(Connection) DriverManager.getConnection(url, user, pwd);
             JOptionPane.showMessageDialog(null, "Conectado");
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Error en la conexión");
@@ -27,7 +29,7 @@ public class KnowledgeBase {
     //-------------------PACIENTES---------------------------//
 
     public void save(Paciente p) throws SQLException {
-        PreparedStatement st = conn.prepareStatement("INSERT INTO paciente VALUES(?,?,?,?,?)");
+        PreparedStatement st = conn.prepareStatement("INSERT INTO paciente (nombre, direccion, ciudad, telefono, email) VALUES(?,?,?,?,?)");
 //        st.setInt(1, p.getId());
         st.setString(1, p.getNombre());
         st.setString(2, p.getDireccion());
@@ -103,7 +105,7 @@ public class KnowledgeBase {
     //-------------------DIAGNOSTICOS---------------------------//
 
     public void save(Diagnostico d) throws SQLException {
-        PreparedStatement st = conn.prepareStatement("INSERT INTO diagnostico VALUES(?)");
+        PreparedStatement st = conn.prepareStatement("INSERT INTO diagnostico (texto) VALUES(?)");
         st.setString(1, d.getTexto());
         st.executeUpdate();
     }
@@ -144,7 +146,7 @@ public class KnowledgeBase {
     }
 
     public void update(Diagnostico d) throws SQLException {
-        String texto = "texto='" + d.getTexto() + "',";
+        String texto = "texto='" + d.getTexto() + "'";
 
         PreparedStatement st = conn.prepareStatement("UPDATE diagnostico SET " +
                 texto +
@@ -155,7 +157,7 @@ public class KnowledgeBase {
     //-------------------TRATAMIENTOS---------------------------//
 
     public void save(Tratamiento t) throws SQLException {
-        PreparedStatement st = conn.prepareStatement("INSERT INTO tratamiento VALUES(?,?)");
+        PreparedStatement st = conn.prepareStatement("INSERT INTO tratamiento (texto, diagnostico_id) VALUES(?,?)");
         st.setString(1, t.getTexto());
         st.setInt(2, t.getDiagnosticoId());
         st.executeUpdate();
@@ -199,7 +201,7 @@ public class KnowledgeBase {
     }
 
     public void update(Tratamiento t) throws SQLException {
-        String texto = "texto='" + t.getTexto() + "',";
+        String texto = "texto='" + t.getTexto() + "'";
 
         PreparedStatement st = conn.prepareStatement("UPDATE tratamiento SET " +
                 texto +
@@ -210,7 +212,7 @@ public class KnowledgeBase {
     //-------------------SIGNOS---------------------------//
 
     public void save(Signo s) throws SQLException {
-        PreparedStatement st = conn.prepareStatement("INSERT INTO signo VALUES(?)");
+        PreparedStatement st = conn.prepareStatement("INSERT INTO signo (nombre) VALUES(?)");
         st.setString(1, s.getNombre());
         st.executeUpdate();
     }
@@ -251,7 +253,7 @@ public class KnowledgeBase {
     }
 
     public void update(Signo s) throws SQLException {
-        String nombre = "nombre='" + s.getNombre() + "',";
+        String nombre = "nombre='" + s.getNombre() + "'";
 
         PreparedStatement st = conn.prepareStatement("UPDATE signo SET " +
                 nombre +
@@ -262,7 +264,7 @@ public class KnowledgeBase {
     //-------------------SINTOMAS---------------------------//
 
     public void save(Sintoma s) throws SQLException {
-        PreparedStatement st = conn.prepareStatement("INSERT INTO sintoma VALUES(?)");
+        PreparedStatement st = conn.prepareStatement("INSERT INTO sintoma (nombre) VALUES(?)");
         st.setString(1, s.getNombre());
         st.executeUpdate();
     }
@@ -303,7 +305,7 @@ public class KnowledgeBase {
     }
 
     public void update(Sintoma s) throws SQLException {
-        String nombre = "nombre='" + s.getNombre() + "',";
+        String nombre = "nombre='" + s.getNombre() + "'";
 
         PreparedStatement st = conn.prepareStatement("UPDATE sintoma SET " +
                 nombre +

@@ -1,4 +1,4 @@
-package Parcial3;
+package Parcial3.sockets;
 
 import java.awt.Image;
 import java.io.IOException;

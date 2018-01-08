@@ -1,4 +1,4 @@
-package Parcial3;
+package Parcial3.modelos;
 
 /**
  * Created by Erik on 1/7/2018.

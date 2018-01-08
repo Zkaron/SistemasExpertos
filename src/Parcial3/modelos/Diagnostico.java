@@ -1,12 +1,11 @@
-package Parcial3;
+package Parcial3.modelos;
 
 /**
  * Created by Erik on 1/7/2018.
  */
-public class Tratamiento {
+public class Diagnostico {
     private int id;
     private String texto;
-    private int diagnosticoId;
 
     public int getId() {
         return id;
@@ -22,13 +21,5 @@ public class Tratamiento {
 
     public void setTexto(String texto) {
         this.texto = texto;
-    }
-
-    public int getDiagnosticoId() {
-        return diagnosticoId;
-    }
-
-    public void setDiagnosticoId(int diagnosticoId) {
-        this.diagnosticoId = diagnosticoId;
     }
 }
