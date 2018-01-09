@@ -2009,7 +2009,8 @@ public class inicio extends JFrame {
     }//GEN-LAST:event_btn_consultar_generar_diagnosticoActionPerformed
 
     private void btn_limpiar_generar_diagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_limpiar_generar_diagnosticoActionPerformed
-        // TODO add your handling code here:
+        jTextArea_Tratamiento_Generar_Diagnostico.setText("");
+        jTextArea_Diagnostico_Generar.setText("");
     }//GEN-LAST:event_btn_limpiar_generar_diagnosticoActionPerformed
 
     public static void main(String args[]) {
