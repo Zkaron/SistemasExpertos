@@ -18,14 +18,18 @@ import javax.swing.JOptionPane;
  * Created by Erik on 9/19/2017.
  */
 public class InferenceEngine {
+    public int signosySintomasRequeridos;
     private LinkedList<Signo> signos;
     private LinkedList<Sintoma> sintomas;
     private HashMap<Diagnostico, Integer> map;
+    private HashMap<LinkedList<Tratamiento>, LinkedList<Diagnostico>> resultadosLocales;
+
+    private boolean isRemoteConnected = false;
     
     Connection conn = null;
-    String url = "jdbc:mysql://localhost:3306/diagnostico";
+    String url = "jdbc:mysql://192.168.1.68:3306/diagnostico";
     String user = "root";
-    String pwd = "";
+    String pwd = "admin";
 
     
     public InferenceEngine(LinkedList<Signo> signos, LinkedList<Sintoma> sintomas) {
@@ -43,11 +47,35 @@ public class InferenceEngine {
             System.exit(0);
         }
     }
+
+    public InferenceEngine(LinkedList<Signo> signos, LinkedList<Sintoma> sintomas, HashMap<LinkedList<Tratamiento>, LinkedList<Diagnostico>> resultadosLocales, String url, String user, String pwd) {
+//        this.url = url;
+//        this.user = user;
+//        this.pwd = pwd;
+        this.resultadosLocales = resultadosLocales;
+        this.signos = signos;
+        this.sintomas = sintomas;
+        map = new HashMap<>();
+
+        try {
+            DriverManager.registerDriver(new org.gjt.mm.mysql.Driver());
+            conn =(Connection) DriverManager.getConnection(url, user, pwd);
+            //JOptionPane.showMessageDialog(null, "Conectado");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error en la conexión");
+            e.printStackTrace();
+            System.exit(0);
+        }
+        isRemoteConnected = true;
+    }
     
     public HashMap<LinkedList<Tratamiento>, LinkedList<Diagnostico>> process() {
         HashMap<LinkedList<Tratamiento>, LinkedList<Diagnostico>> resultadosFinales = new HashMap<>();
         LinkedList<Tratamiento> tratamientosFinales = new LinkedList<>();
         LinkedList<Diagnostico> diagnosticosFinales = new LinkedList<>();
+
+        int numeroSignos = signos.size();
+        int numeroSintomas = sintomas.size();
         
         for(int i = 0; i < signos.size(); i++) {
             LinkedList<Diagnostico> diagnosticos = new LinkedList<>();
@@ -56,6 +84,7 @@ public class InferenceEngine {
             } catch(SQLException e) {
                 e.printStackTrace();
             }
+
             for(int j = 0; j < diagnosticos.size(); j++) {
                 if(!map.containsKey(diagnosticos.get(j))) {
                     map.put(diagnosticos.get(j), 1);
@@ -107,7 +136,16 @@ public class InferenceEngine {
             
             resultadosFinales.put(tratamientosFinales, diagnosticosFinales);
         }
-       
+
+        try {
+            close();   //Close connection
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if(isRemoteConnected) {
+            Learn learn = new Learn(resultadosLocales, resultadosFinales, numeroSignos, numeroSintomas);
+        }
+
         return resultadosFinales;
     }
     
@@ -148,8 +186,8 @@ public class InferenceEngine {
         while(rs.next()) {
             diagnosticos_id.add(rs.getInt(1));
         }
-        for(int i = 0; i < diagnosticos.size(); i++) {
-            st = conn.prepareStatement("SELECT * FROM diagnostico WHERE id='" + diagnosticos.get(i) + "'");
+        for(int i = 0; i < diagnosticos_id.size(); i++) {
+            st = conn.prepareStatement("SELECT * FROM diagnostico WHERE id='" + diagnosticos_id.get(i) + "'");
             st.executeQuery();
             rs = st.getResultSet();
             
@@ -180,5 +218,9 @@ public class InferenceEngine {
         }
         
         return tratamientos;
+    }
+
+    public void close() throws SQLException {
+        conn.close();
     }
 }

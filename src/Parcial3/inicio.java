@@ -17,6 +17,10 @@ public class inicio extends JFrame {
     Sintoma sintoma;
     Signo signo;
 
+    private String remoteUrl;
+    private String remoteUser;
+    private String remotePwd;
+
     private LinkedList<Paciente> pacientesList;
     private LinkedList<Tratamiento> tratamientosList;
     private LinkedList<Diagnostico> diagnosticosList;
@@ -44,6 +48,8 @@ public class inicio extends JFrame {
     private ComboSintomasListModel combo_list_Sintoma_Generar_Diagnostico;
     private LinkedList<Tratamiento> resultadosTratamiento;
     private LinkedList<Diagnostico> resultadosDiagnostico;
+    private LinkedList<Tratamiento> resultadosTratamientoRemoto;
+    private LinkedList<Diagnostico> resultadosDiagnosticoRemoto;
     
 
     public inicio() {
@@ -2006,6 +2012,18 @@ public class inicio extends JFrame {
         for(Diagnostico d : resultadosDiagnostico) {
             jTextArea_Diagnostico_Generar.append(d.getTexto() + ", ");
         }
+
+        //Conectar con base de datos remota
+        InferenceEngine remoteInference = new InferenceEngine(signosAgregados, sintomasAgregados, resultados, remoteUrl, remoteUser, remotePwd);
+
+        HashMap<LinkedList<Tratamiento>, LinkedList<Diagnostico>> resultadosRemotos = inference.process();
+
+//        //Should only iterate once, manda los resultados a sus respectivas listas
+//        for(Map.Entry<LinkedList<Tratamiento>, LinkedList<Diagnostico>> entry : resultadosRemotos.entrySet()) {
+//            resultadosTratamientoRemoto = entry.getKey();
+//            resultadosDiagnosticoRemoto = entry.getValue();
+//        }
+
     }//GEN-LAST:event_btn_consultar_generar_diagnosticoActionPerformed
 
     private void btn_limpiar_generar_diagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_limpiar_generar_diagnosticoActionPerformed

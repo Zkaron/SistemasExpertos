@@ -22,4 +22,20 @@ public class Diagnostico {
     public void setTexto(String texto) {
         this.texto = texto;
     }
+
+    @Override
+    public int hashCode()
+    {
+        return texto.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if(!(o instanceof Diagnostico)) {
+            return false;
+        }
+        Diagnostico d = (Diagnostico)o;
+        return d.getId() == id && d.getTexto().equals(this.getTexto());
+    }
 }

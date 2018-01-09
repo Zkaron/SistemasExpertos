@@ -1,5 +1,8 @@
-package Parcial3.sockets;//package Parcial3;//package cliente.servidor;
+//package Parcial3.sockets;
 ////import cliente.servidor.Conexion;
+//
+//import Parcial3.KnowledgeBase;
+//
 //import java.io.*;
 //import java.net.*;
 //import java.awt.*;
@@ -19,8 +22,8 @@ package Parcial3.sockets;//package Parcial3;//package cliente.servidor;
 //    KnowledgeBase db;
 //    public Servidor() {
 //        super("Servidor");
-//        user=new Usuario();
-//        db=new  DataBase();
+//        user = new Usuario();
+//        db = new KnowledgeBase();
 //        areaPantalla = new JTextArea();
 //        getContentPane().add(new JScrollPane(areaPantalla),
 //                BorderLayout.CENTER);

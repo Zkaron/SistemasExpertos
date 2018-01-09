@@ -11,15 +11,26 @@ import java.util.LinkedList;
  */
 public class KnowledgeBase {
     Connection conn = null;
-    String url = "jdbc:mysql://localhost:3306/diagnostico";
+    String url = "jdbc:mysql://192.168.1.68:3306/diagnostico";
     String user = "root";
-    String pwd = "";
+    String pwd = "admin";
 
     public KnowledgeBase() {
+        connect();
+    }
+
+    public KnowledgeBase(String url, String user, String pwd) {
+        this.url = url;
+        this.user = user;
+        this.pwd = pwd;
+        connect();
+    }
+
+    public void connect() {
         try {
             DriverManager.registerDriver(new org.gjt.mm.mysql.Driver());
             conn =(Connection) DriverManager.getConnection(url, user, pwd);
-            //JOptionPane.showMessageDialog(null, "Conectado");
+//            JOptionPane.showMessageDialog(null, "Conectado");
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Error en la conexión");
             e.printStackTrace();
