@@ -19,10 +19,11 @@ public class KnowledgeBase {
         try {
             DriverManager.registerDriver(new org.gjt.mm.mysql.Driver());
             conn =(Connection) DriverManager.getConnection(url, user, pwd);
-            JOptionPane.showMessageDialog(null, "Conectado");
+            //JOptionPane.showMessageDialog(null, "Conectado");
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Error en la conexión");
             e.printStackTrace();
+            System.exit(0);
         }
     }
 
@@ -30,7 +31,7 @@ public class KnowledgeBase {
 
     public void save(Paciente p) throws SQLException {
         PreparedStatement st = conn.prepareStatement("INSERT INTO paciente (nombre, direccion, ciudad, telefono, email) VALUES(?,?,?,?,?)");
-//        st.setInt(1, p.getId());
+//        st.setInt(1, paciente.getId());
         st.setString(1, p.getNombre());
         st.setString(2, p.getDireccion());
         st.setString(3,  p.getCiudad());
@@ -140,6 +141,20 @@ public class KnowledgeBase {
         return d;
     }
 
+    public Diagnostico searchByName(Diagnostico diagnostico) throws SQLException {
+        ResultSet rs;
+        PreparedStatement st = conn.prepareStatement("SELECT * FROM diagnostico WHERE texto='" + diagnostico.getTexto() + "'");
+        st.executeQuery();
+        rs = st.getResultSet();
+
+        Diagnostico d = new Diagnostico();
+        while (rs.next()) {
+            d.setId(rs.getInt(1));
+            d.setTexto(rs.getString(2));
+        }
+        return d;
+    }
+
     public void delete(Diagnostico d) throws SQLException {
         PreparedStatement st = conn.prepareStatement("DELETE FROM diagnostico WHERE id='" + d.getId() + "'");
         st.execute();
@@ -163,22 +178,20 @@ public class KnowledgeBase {
         st.executeUpdate();
     }
 
-    public LinkedList<Tratamiento> getTratamientos() throws SQLException {
-        LinkedList<Tratamiento> results = new LinkedList<>();
+    public Tratamiento getTratamientos() throws SQLException {
         ResultSet rs;
         PreparedStatement st = conn.prepareStatement("SELECT * FROM tratamiento");
         st.executeQuery();
         rs = st.getResultSet();
 
+        Tratamiento t = new Tratamiento();
         while (rs.next()) {
-            Tratamiento t = new Tratamiento();
             t.setId(rs.getInt(1));
             t.setTexto(rs.getString(2));
             t.setDiagnosticoId(rs.getInt(3));
-            results.add(t);
         }
 
-        return results;
+        return t;
     }
 
     public Tratamiento search(Tratamiento t) throws SQLException {
@@ -193,6 +206,23 @@ public class KnowledgeBase {
             t.setDiagnosticoId(rs.getInt(3));
         }
         return t;
+    }
+
+    public LinkedList<Tratamiento> searchByName(Tratamiento tratamiento) throws SQLException {
+        LinkedList<Tratamiento> tratamientos = new LinkedList<>();
+        ResultSet rs;
+        PreparedStatement st = conn.prepareStatement("SELECT * FROM tratamiento WHERE texto='" + tratamiento.getTexto() + "'");
+        st.executeQuery();
+        rs = st.getResultSet();
+
+        while (rs.next()) {
+            Tratamiento t = new Tratamiento();
+            t.setId(rs.getInt(1));
+            t.setTexto(rs.getString(2));
+            t.setDiagnosticoId(rs.getInt(3));
+            tratamientos.add(t);
+        }
+        return tratamientos;
     }
 
     public void delete(Tratamiento t) throws SQLException {
@@ -240,6 +270,20 @@ public class KnowledgeBase {
         st.executeQuery();
         rs = st.getResultSet();
 
+        while (rs.next()) {
+            s.setId(rs.getInt(1));
+            s.setNombre(rs.getString(2));
+        }
+        return s;
+    }
+
+    public Signo searchByName(Signo signo) throws SQLException {
+        ResultSet rs;
+        PreparedStatement st = conn.prepareStatement("SELECT * FROM signo WHERE nombre='" + signo.getNombre() + "'");
+        st.executeQuery();
+        rs = st.getResultSet();
+
+        Signo s = new Signo();
         while (rs.next()) {
             s.setId(rs.getInt(1));
             s.setNombre(rs.getString(2));
@@ -299,6 +343,20 @@ public class KnowledgeBase {
         return s;
     }
 
+    public Sintoma searchByName(Sintoma sintoma) throws SQLException {
+        ResultSet rs;
+        PreparedStatement st = conn.prepareStatement("SELECT * FROM sintoma WHERE nombre='" + sintoma.getNombre() + "'");
+        st.executeQuery();
+        rs = st.getResultSet();
+
+        Sintoma s = new Sintoma();
+        while (rs.next()) {
+            s.setId(rs.getInt(1));
+            s.setNombre(rs.getString(2));
+        }
+        return s;
+    }
+
     public void delete(Sintoma s) throws SQLException {
         PreparedStatement st = conn.prepareStatement("DELETE FROM sintoma WHERE id='" + s.getId() + "'");
         st.execute();
@@ -310,6 +368,69 @@ public class KnowledgeBase {
         PreparedStatement st = conn.prepareStatement("UPDATE sintoma SET " +
                 nombre +
                 "WHERE id='" + s.getId() + "'");
+        st.executeUpdate();
+    }
+
+    //-------------------SIGNO-DIAGNOSTICO---------------------------//
+
+    public void save(Signo s, Diagnostico d) throws SQLException {
+        PreparedStatement st = conn.prepareStatement("INSERT INTO signo_diagnostico (signo_id, diagnostico_id) VALUES(?,?)");
+        st.setInt(1, s.getId());
+        st.setInt(2, d.getId());
+        st.executeUpdate();
+    }
+
+//    public Sintoma search(Sintoma s) throws SQLException {
+//        ResultSet rs;
+//        PreparedStatement st = conn.prepareStatement("SELECT * FROM sintoma WHERE id='" + s.getId() + "'");
+//        st.executeQuery();
+//        rs = st.getResultSet();
+//
+//        while (rs.next()) {
+//            s.setId(rs.getInt(1));
+//            s.setNombre(rs.getString(2));
+//        }
+//        return s;
+//    }
+
+    public void delete(Signo s, Diagnostico d) throws SQLException {
+        PreparedStatement st = conn.prepareStatement("DELETE FROM signo_diagnostico WHERE signo_id='" + s.getId() + "' AND diagnostico_id='" + d.getId() + "'");
+        st.execute();
+    }
+
+    public void update(Signo s, Diagnostico d) throws SQLException {
+        String sintoma = "signo_id=" + s.getId() + " ,";
+        String diagnostico = "diagnostico_id=" + d.getId() + "";
+
+        PreparedStatement st = conn.prepareStatement("UPDATE signo_diagnostico SET " +
+                sintoma +
+                diagnostico +
+                "WHERE signo_id=" + s.getId() + " AND diagnostico_id=" + d.getId());
+        st.executeUpdate();
+    }
+
+    //-------------------SINTOMA-DIAGNOSTICO---------------------------//
+
+    public void save(Sintoma s, Diagnostico d) throws SQLException {
+        PreparedStatement st = conn.prepareStatement("INSERT INTO sintoma_diagnostico (sintoma_id, diagnostico_id) VALUES(?,?)");
+        st.setInt(1, s.getId());
+        st.setInt(2, d.getId());
+        st.executeUpdate();
+    }
+
+    public void delete(Sintoma s, Diagnostico d) throws SQLException {
+        PreparedStatement st = conn.prepareStatement("DELETE FROM sintoma_diagnostico WHERE sintoma_id='" + s.getId() + "' AND diagnostico_id='" + d.getId() + "'");
+        st.execute();
+    }
+
+    public void update(Sintoma s, Diagnostico d) throws SQLException {
+        String sintoma = "sintoma_id=" + s.getId() + " ,";
+        String diagnostico = "diagnostico_id=" + d.getId() + " ";
+
+        PreparedStatement st = conn.prepareStatement("UPDATE sintoma_diagnostico SET " +
+                sintoma +
+                diagnostico +
+                "WHERE sintoma_id=" + s.getId() + " AND diagnostico_id=" + d.getId());
         st.executeUpdate();
     }
 }

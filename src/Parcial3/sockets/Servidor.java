@@ -1,4 +1,4 @@
-//package Parcial3;//package cliente.servidor;
+package Parcial3.sockets;//package Parcial3;//package cliente.servidor;
 ////import cliente.servidor.Conexion;
 //import java.io.*;
 //import java.net.*;
