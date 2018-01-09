@@ -178,20 +178,22 @@ public class KnowledgeBase {
         st.executeUpdate();
     }
 
-    public Tratamiento getTratamientos() throws SQLException {
+    public LinkedList<Tratamiento> getTratamientos() throws SQLException {
+        LinkedList<Tratamiento> tratamientos = new LinkedList<>();
         ResultSet rs;
         PreparedStatement st = conn.prepareStatement("SELECT * FROM tratamiento");
         st.executeQuery();
         rs = st.getResultSet();
 
-        Tratamiento t = new Tratamiento();
         while (rs.next()) {
+            Tratamiento t = new Tratamiento();
             t.setId(rs.getInt(1));
             t.setTexto(rs.getString(2));
             t.setDiagnosticoId(rs.getInt(3));
+            tratamientos.add(t);
         }
 
-        return t;
+        return tratamientos;
     }
 
     public Tratamiento search(Tratamiento t) throws SQLException {

@@ -3,7 +3,9 @@ package Parcial3;
 import Parcial3.modelos.*;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import javax.swing.*;
 
 public class inicio extends JFrame {
@@ -25,6 +27,7 @@ public class inicio extends JFrame {
     private LinkedList<Signo> agregadosSigno;
     private LinkedList<Sintoma> agregadosSintoma;
 
+    //Para diagnosticos
     private SignosListModel list_Signo_Diagnostico;
     private SintomasListModel list_Sintoma_Diagnostico;
     private DiagnosticosListModel list_Diagnostico;
@@ -32,6 +35,16 @@ public class inicio extends JFrame {
     private ComboSignosListModel combo_list_Signo_Diagnostico;
     private ComboSintomasListModel combo_list_Sintoma_Diagnostico;
     private ComboDiagnosticosListModel combo_list_Diagnostico;
+    
+    //Para generar diagnostico
+    private SignosListModel list_Signo_Generar_Diagnostico;
+    private SintomasListModel list_Sintoma_Generar_Diagnostico;
+    
+    private ComboSignosListModel combo_list_Signo_Generar_Diagnostico;
+    private ComboSintomasListModel combo_list_Sintoma_Generar_Diagnostico;
+    private LinkedList<Tratamiento> resultadosTratamiento;
+    private LinkedList<Diagnostico> resultadosDiagnostico;
+    
 
     public inicio() {
         pacientesList = new LinkedList<>();
@@ -44,13 +57,18 @@ public class inicio extends JFrame {
         agregadosSigno = new LinkedList<>();
         agregadosSintoma = new LinkedList<>();
 
+       
         list_Signo_Diagnostico = new SignosListModel();
         list_Sintoma_Diagnostico = new SintomasListModel();
-        list_Diagnostico = new DiagnosticosListModel();
-        
+        list_Diagnostico = new DiagnosticosListModel();   
         combo_list_Signo_Diagnostico = new ComboSignosListModel();
         combo_list_Sintoma_Diagnostico = new ComboSintomasListModel();
         combo_list_Diagnostico = new ComboDiagnosticosListModel();
+        
+        list_Signo_Generar_Diagnostico = new SignosListModel();
+        list_Sintoma_Generar_Diagnostico = new SintomasListModel();
+        combo_list_Signo_Generar_Diagnostico = new ComboSignosListModel();
+        combo_list_Sintoma_Generar_Diagnostico = new ComboSintomasListModel();
 
         initComponents();
         setLocationRelativeTo(null);
@@ -63,13 +81,19 @@ public class inicio extends JFrame {
         sintoma = new Sintoma();
         signo = new Signo();
         
+        //Diagnosticos
         jList_Signo_Diagnostico.setModel(list_Signo_Diagnostico);
         jList_Sintoma_Diagnostico.setModel(list_Sintoma_Diagnostico);
         jList_Tratamiento_Diagnostico.setModel(list_Diagnostico);
-        
         jcb_Signo_Diagnostico.setModel(combo_list_Signo_Diagnostico);
         jcb_Sintoma_Diagnostico.setModel(combo_list_Sintoma_Diagnostico);
         jcb_Tratamiento_Diagnostico.setModel(combo_list_Diagnostico);
+        
+        //Generar Diagnosticos
+        jList_signos_generar_diagnostico.setModel(list_Signo_Generar_Diagnostico);
+        jList_sintomas_generar_diagnostico.setModel(list_Sintoma_Generar_Diagnostico);
+        jcb_signos_generar_diagnostico.setModel(combo_list_Signo_Generar_Diagnostico);
+        jcb_sintomas_generar_diagnostico.setModel(combo_list_Sintoma_Generar_Diagnostico);
         
         cargarPacientes();
         cargarSignos();
@@ -229,7 +253,7 @@ public class inicio extends JFrame {
 
     public void guardar_tratamiento() {
 //        tratamiento.setId(Integer.parseInt(jtxtID_Enf.getText()));
-        tratamiento.setTexto(jtxtDiagnostico.getText());
+        tratamiento.setTexto(jTextAreaTratamiento.getText());
 
         int tamanio_tratamiento = jList_Tratamiento_Diagnostico.getModel().getSize();
 
@@ -429,13 +453,22 @@ public class inicio extends JFrame {
             signosList = db.getSignos();
         } catch (SQLException ex) {
 //            Logger.getLogger(inicio.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }       
 
+        //ComboBox de Diagnosticos
         for(int i = combo_list_Signo_Diagnostico.getSize() - 1; i >= 0 ; i--) {
             combo_list_Signo_Diagnostico.removeSigno(i);
         }
         for(Signo s : signosList) {
             combo_list_Signo_Diagnostico.addSigno(s);
+        }
+        
+        //ComboBox de Generar Diagnostico
+        for(int i = combo_list_Signo_Generar_Diagnostico.getSize() - 1; i >= 0; i--) {
+            combo_list_Signo_Generar_Diagnostico.removeSigno(i);
+        }
+        for(Signo s : signosList) {
+            combo_list_Signo_Generar_Diagnostico.addSigno(s);
         }
     }
     
@@ -445,11 +478,21 @@ public class inicio extends JFrame {
         } catch (SQLException ex) {
 //            Logger.getLogger(inicio.class.getName()).log(Level.SEVERE, null, ex);
         }
+                
+        //ComboBox de Diagnosticos
         for(int i = combo_list_Sintoma_Diagnostico.getSize() - 1; i >= 0; i--) {
             combo_list_Sintoma_Diagnostico.removeSintoma(i);
         }
         for(Sintoma s : sintomasList) {
             combo_list_Sintoma_Diagnostico.addSintoma(s);
+        }
+        
+        //ComboBox de Generar Diagnostico
+        for(int i = combo_list_Sintoma_Generar_Diagnostico.getSize() - 1; i >= 0; i--) {
+            combo_list_Sintoma_Generar_Diagnostico.removeSintoma(i);
+        }
+        for(Sintoma s : sintomasList) {
+            combo_list_Sintoma_Generar_Diagnostico.addSintoma(s);
         }
     }
 
@@ -468,33 +511,45 @@ public class inicio extends JFrame {
         
         //jcb_Tratamiento_Diagnostico.removeAllItems();
     }
+    
+    public void cargarTratamientos() {
+        try {
+            tratamientosList = db.getTratamientos();
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+               
+             
+    }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         jTabbedPane1 = new JTabbedPane();
-        jPanel1 = new JPanel();
-        jLabel4 = new JLabel();
-        jLabel5 = new JLabel();
-        jLabel6 = new JLabel();
-        jLabel2 = new JLabel();
-        jLabel7 = new JLabel();
-        jbtnNuevo = new JButton();
-        jtxtNombre = new JTextField();
-        jbtnGuardar = new JButton();
-        jtxtDireccion = new JTextField();
-        jbtnCancelar = new JButton();
-        jtxtCiudad = new JTextField();
-        jbtnEditar = new JButton();
-        jtxtTelefono = new JTextField();
-        jLabel1 = new JLabel();
-        jtxtID = new JTextField();
-        jbtnBorrar = new JButton();
-        jtxtEmail = new JTextField();
-        jbtnBuscar = new JButton();
-        jtxtDato = new JTextField();
-        jLabel3 = new JLabel();
+        jTabbedPane2 = new JTabbedPane();
+        jPanel6 = new JPanel();
+        jLabel13 = new JLabel();
+        jLabel15 = new JLabel();
+        jLabel18 = new JLabel();
+        jcb_signos_generar_diagnostico = new JComboBox<>();
+        jcb_sintomas_generar_diagnostico = new JComboBox<>();
+        jScrollPane5 = new JScrollPane();
+        jList_signos_generar_diagnostico = new JList<>();
+        jScrollPane6 = new JScrollPane();
+        jList_sintomas_generar_diagnostico = new JList<>();
+        jScrollPane7 = new JScrollPane();
+        jTextArea_Diagnostico_Generar = new JTextArea();
+        jLabel20 = new JLabel();
+        btn_consultar_generar_diagnostico = new JButton();
+        btn_limpiar_generar_diagnostico = new JButton();
+        jScrollPane8 = new JScrollPane();
+        jTextArea_Tratamiento_Generar_Diagnostico = new JTextArea();
+        jLabel26 = new JLabel();
+        btn_agregar_signo_generar_diagnostico = new JButton();
+        btn_borrar_signo_generar_diagnostico = new JButton();
+        btn_agregar_sintoma_generar_diagnostico = new JButton();
+        btn_borrar_sintoma_generar_diagnostico = new JButton();
         jPanel3 = new JPanel();
         jLabel24 = new JLabel();
         jLabel25 = new JLabel();
@@ -517,6 +572,7 @@ public class inicio extends JFrame {
         jList_Signo_Diagnostico = new JList<>();
         jScrollPane4 = new JScrollPane();
         jList_Sintoma_Diagnostico = new JList<>();
+        jButton1 = new JButton();
         jPanel2 = new JPanel();
         jLabel8 = new JLabel();
         jtxtDato_Tratamiento = new JTextField();
@@ -567,157 +623,212 @@ public class inicio extends JFrame {
         jLabel16 = new JLabel();
         jtxtNombre_Signo = new JTextField();
         jLabel17 = new JLabel();
+        jPanel1 = new JPanel();
+        jLabel4 = new JLabel();
+        jLabel5 = new JLabel();
+        jLabel6 = new JLabel();
+        jLabel2 = new JLabel();
+        jLabel7 = new JLabel();
+        jbtnNuevo = new JButton();
+        jtxtNombre = new JTextField();
+        jbtnGuardar = new JButton();
+        jtxtDireccion = new JTextField();
+        jbtnCancelar = new JButton();
+        jtxtCiudad = new JTextField();
+        jbtnEditar = new JButton();
+        jtxtTelefono = new JTextField();
+        jLabel1 = new JLabel();
+        jtxtID = new JTextField();
+        jbtnBorrar = new JButton();
+        jtxtEmail = new JTextField();
+        jbtnBuscar = new JButton();
+        jtxtDato = new JTextField();
+        jLabel3 = new JLabel();
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jLabel4.setText("Ciudad:");
+        jLabel13.setText("Signos:");
 
-        jLabel5.setText("Telefono:");
+        jLabel15.setText("Sintomas:");
 
-        jLabel6.setText("Email:");
+        jLabel18.setText("Para hacer consultas");
 
-        jLabel2.setText("Nombre:");
+        jcb_signos_generar_diagnostico.setModel(new DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
-        jLabel7.setText("Ingrese ID del paciente:");
+        jcb_sintomas_generar_diagnostico.setModel(new DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
-        jbtnNuevo.setText("Nuevo");
-        jbtnNuevo.addActionListener(new java.awt.event.ActionListener() {
+        jList_signos_generar_diagnostico.setModel(new AbstractListModel<String>() {
+            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            public int getSize() { return strings.length; }
+            public String getElementAt(int i) { return strings[i]; }
+        });
+        jScrollPane5.setViewportView(jList_signos_generar_diagnostico);
+
+        jList_sintomas_generar_diagnostico.setModel(new AbstractListModel<String>() {
+            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            public int getSize() { return strings.length; }
+            public String getElementAt(int i) { return strings[i]; }
+        });
+        jScrollPane6.setViewportView(jList_sintomas_generar_diagnostico);
+
+        jTextArea_Diagnostico_Generar.setColumns(20);
+        jTextArea_Diagnostico_Generar.setRows(5);
+        jTextArea_Diagnostico_Generar.setFocusable(false);
+        jScrollPane7.setViewportView(jTextArea_Diagnostico_Generar);
+
+        jLabel20.setText("Diagnostico:");
+
+        btn_consultar_generar_diagnostico.setText("Consultar");
+        btn_consultar_generar_diagnostico.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jbtnNuevoActionPerformed(evt);
+                btn_consultar_generar_diagnosticoActionPerformed(evt);
             }
         });
 
-        jbtnGuardar.setText("Guardar");
-        jbtnGuardar.addActionListener(new java.awt.event.ActionListener() {
+        btn_limpiar_generar_diagnostico.setText("Limpiar");
+        btn_limpiar_generar_diagnostico.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jbtnGuardarActionPerformed(evt);
+                btn_limpiar_generar_diagnosticoActionPerformed(evt);
             }
         });
 
-        jbtnCancelar.setText("Cancelar");
-        jbtnCancelar.addActionListener(new java.awt.event.ActionListener() {
+        jTextArea_Tratamiento_Generar_Diagnostico.setColumns(20);
+        jTextArea_Tratamiento_Generar_Diagnostico.setRows(5);
+        jTextArea_Tratamiento_Generar_Diagnostico.setFocusable(false);
+        jScrollPane8.setViewportView(jTextArea_Tratamiento_Generar_Diagnostico);
+
+        jLabel26.setText("Tratamiento:");
+
+        btn_agregar_signo_generar_diagnostico.setText("Agregar");
+        btn_agregar_signo_generar_diagnostico.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jbtnCancelarActionPerformed(evt);
+                btn_agregar_signo_generar_diagnosticoActionPerformed(evt);
             }
         });
 
-        jbtnEditar.setText("Editar");
-        jbtnEditar.addActionListener(new java.awt.event.ActionListener() {
+        btn_borrar_signo_generar_diagnostico.setText("Borrar");
+        btn_borrar_signo_generar_diagnostico.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jbtnEditarActionPerformed(evt);
+                btn_borrar_signo_generar_diagnosticoActionPerformed(evt);
             }
         });
 
-        jLabel1.setText("ID:");
-
-        jbtnBorrar.setText("Borrar");
-        jbtnBorrar.addActionListener(new java.awt.event.ActionListener() {
+        btn_agregar_sintoma_generar_diagnostico.setText("Agregar");
+        btn_agregar_sintoma_generar_diagnostico.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jbtnBorrarActionPerformed(evt);
+                btn_agregar_sintoma_generar_diagnosticoActionPerformed(evt);
             }
         });
 
-        jbtnBuscar.setText("Buscar");
-        jbtnBuscar.addActionListener(new java.awt.event.ActionListener() {
+        btn_borrar_sintoma_generar_diagnostico.setText("Borrar");
+        btn_borrar_sintoma_generar_diagnostico.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jbtnBuscarActionPerformed(evt);
+                btn_borrar_sintoma_generar_diagnosticoActionPerformed(evt);
             }
         });
 
-        jLabel3.setText("Direccion:");
-
-        GroupLayout jPanel1Layout = new GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jbtnNuevo)
+        GroupLayout jPanel6Layout = new GroupLayout(jPanel6);
+        jPanel6.setLayout(jPanel6Layout);
+        jPanel6Layout.setHorizontalGroup(
+            jPanel6Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addGap(51, 51, 51)
+                .addGroup(jPanel6Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
+                        .addGroup(jPanel6Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel6Layout.createSequentialGroup()
+                                .addComponent(jLabel13)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jcb_signos_generar_diagnostico, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel6Layout.createSequentialGroup()
+                                .addComponent(jScrollPane5, GroupLayout.PREFERRED_SIZE, 152, GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel6Layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(btn_agregar_signo_generar_diagnostico, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(btn_borrar_signo_generar_diagnostico, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 62, Short.MAX_VALUE)
+                        .addGroup(jPanel6Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel6Layout.createSequentialGroup()
+                                .addComponent(jLabel15)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jcb_sintomas_generar_diagnostico, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel6Layout.createSequentialGroup()
+                                .addComponent(jScrollPane6, GroupLayout.PREFERRED_SIZE, 152, GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel6Layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(btn_agregar_sintoma_generar_diagnostico, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(btn_borrar_sintoma_generar_diagnostico, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addGap(31, 31, 31))
+                    .addGroup(jPanel6Layout.createSequentialGroup()
+                        .addGroup(jPanel6Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane7, GroupLayout.PREFERRED_SIZE, 230, GroupLayout.PREFERRED_SIZE)
+                            .addGroup(jPanel6Layout.createSequentialGroup()
+                                .addGap(76, 76, 76)
+                                .addComponent(jLabel20)))
+                        .addGroup(jPanel6Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel6Layout.createSequentialGroup()
+                                .addGap(70, 70, 70)
+                                .addComponent(jLabel26))
+                            .addGroup(jPanel6Layout.createSequentialGroup()
+                                .addGap(45, 45, 45)
+                                .addComponent(jScrollPane8, GroupLayout.PREFERRED_SIZE, 230, GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(jPanel6Layout.createSequentialGroup()
+                        .addGap(159, 159, 159)
+                        .addComponent(btn_consultar_generar_diagnostico)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jbtnGuardar)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jbtnCancelar)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jbtnEditar)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jbtnBorrar))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel7)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jtxtDato, GroupLayout.PREFERRED_SIZE, 215, GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jbtnBuscar)))
-                .addGap(50, 50, 50))
-            .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                .addGroup(jPanel1Layout.createSequentialGroup()
-                    .addGap(105, 105, 105)
-                    .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                        .addComponent(jLabel2)
-                        .addComponent(jLabel1)
-                        .addComponent(jLabel3)
-                        .addComponent(jLabel4)
-                        .addComponent(jLabel5)
-                        .addComponent(jLabel6))
-                    .addGap(18, 18, 18)
-                    .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addComponent(jtxtID, GroupLayout.PREFERRED_SIZE, 45, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jtxtDireccion, GroupLayout.PREFERRED_SIZE, 269, GroupLayout.PREFERRED_SIZE)
-                        .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(jtxtEmail, GroupLayout.Alignment.LEADING)
-                            .addComponent(jtxtTelefono, GroupLayout.Alignment.LEADING)
-                            .addComponent(jtxtCiudad, GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE))
-                        .addComponent(jtxtNombre, GroupLayout.PREFERRED_SIZE, 269, GroupLayout.PREFERRED_SIZE))
-                    .addContainerGap(146, Short.MAX_VALUE)))
+                        .addComponent(btn_limpiar_generar_diagnostico)
+                        .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addGap(213, 213, 213)
+                .addComponent(jLabel18)
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(36, 36, 36)
-                .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(jtxtDato, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jbtnBuscar)
-                    .addComponent(jLabel7))
-                .addGap(254, 254, 254)
-                .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(jbtnNuevo)
-                    .addComponent(jbtnGuardar)
-                    .addComponent(jbtnCancelar)
-                    .addComponent(jbtnEditar)
-                    .addComponent(jbtnBorrar))
-                .addContainerGap(110, Short.MAX_VALUE))
-            .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                .addGroup(jPanel1Layout.createSequentialGroup()
-                    .addGap(113, 113, 113)
-                    .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(jtxtID, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel1))
-                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                    .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(jtxtNombre, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel2))
-                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                    .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(jtxtDireccion, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel3))
-                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                    .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(jtxtCiudad, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel4))
-                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                    .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(jtxtTelefono, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel5))
-                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                    .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(jtxtEmail, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel6))
-                    .addContainerGap(170, Short.MAX_VALUE)))
+        jPanel6Layout.setVerticalGroup(
+            jPanel6Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addComponent(jLabel18)
+                .addGap(21, 21, 21)
+                .addGroup(jPanel6Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel13)
+                    .addComponent(jLabel15)
+                    .addComponent(jcb_signos_generar_diagnostico, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jcb_sintomas_generar_diagnostico, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGroup(jPanel6Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel6Layout.createSequentialGroup()
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel6Layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                            .addComponent(jScrollPane5, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jScrollPane6, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(jPanel6Layout.createSequentialGroup()
+                        .addGap(22, 22, 22)
+                        .addComponent(btn_agregar_signo_generar_diagnostico)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_borrar_signo_generar_diagnostico))
+                    .addGroup(jPanel6Layout.createSequentialGroup()
+                        .addGap(24, 24, 24)
+                        .addComponent(btn_agregar_sintoma_generar_diagnostico)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_borrar_sintoma_generar_diagnostico)))
+                .addGap(21, 21, 21)
+                .addGroup(jPanel6Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(btn_limpiar_generar_diagnostico)
+                    .addComponent(btn_consultar_generar_diagnostico))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel6Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel26)
+                    .addComponent(jLabel20))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 10, Short.MAX_VALUE)
+                .addGroup(jPanel6Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane8, GroupLayout.Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane7, GroupLayout.Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(27, 27, 27))
         );
 
-        jTabbedPane1.addTab("Pacientes", jPanel1);
+        jTabbedPane2.addTab("Consulta", jPanel6);
+
+        jTabbedPane1.addTab("Generar Diagnostico", jTabbedPane2);
 
         jLabel24.setText("Signo:");
 
@@ -769,7 +880,7 @@ public class inicio extends JFrame {
             }
         });
 
-        jbtnGenerar.setText("GENERAR");
+        jbtnGenerar.setText("Guardar");
         jbtnGenerar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jbtnGenerarActionPerformed(evt);
@@ -780,12 +891,9 @@ public class inicio extends JFrame {
 
         jScrollPane3.setViewportView(jList_Signo_Diagnostico);
 
-        jList_Sintoma_Diagnostico.setModel(new AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
-        });
         jScrollPane4.setViewportView(jList_Sintoma_Diagnostico);
+
+        jButton1.setText("Editar");
 
         GroupLayout jPanel3Layout = new GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -815,29 +923,31 @@ public class inicio extends JFrame {
                                     .addComponent(jcb_Sintoma_Diagnostico, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
                                 .addGap(14, 14, 14)))
                         .addGroup(jPanel3Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addComponent(jtxtDiagnostico, GroupLayout.PREFERRED_SIZE, 269, GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jtxtID_Diagnostico, GroupLayout.PREFERRED_SIZE, 45, GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jcbPacientes, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                            .addGroup(jPanel3Layout.createSequentialGroup()
-                                .addGap(67, 67, 67)
-                                .addComponent(jbtnGenerar))
                             .addGroup(GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                                 .addGap(4, 4, 4)
                                 .addGroup(jPanel3Layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jScrollPane3, GroupLayout.DEFAULT_SIZE, 186, Short.MAX_VALUE)
+                                    .addComponent(jScrollPane3)
                                     .addComponent(jScrollPane4))
                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(jPanel3Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                                     .addComponent(jbtnAgregar_Signo_Diagnostico)
                                     .addComponent(jbtnEliminar_Signo_Diagnostico)
                                     .addComponent(jbtnAgregar_Sintoma_Diagnostico)
-                                    .addComponent(jbtnEliminar_Sintoma_Diagnostico)))))
+                                    .addComponent(jbtnEliminar_Sintoma_Diagnostico)))
+                            .addComponent(jtxtDiagnostico, GroupLayout.PREFERRED_SIZE, 269, GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jtxtID_Diagnostico, GroupLayout.PREFERRED_SIZE, 45, GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jcbPacientes, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                            .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addGap(27, 27, 27)
+                                .addComponent(jbtnCancelar_Diagnostico)
+                                .addGap(18, 18, 18)
+                                .addComponent(jbtnGenerar)
+                                .addGap(27, 27, 27)
+                                .addComponent(jButton1))))
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(jbtnNuevo_Diagnostico)
-                        .addGap(18, 18, 18)
-                        .addComponent(jbtnCancelar_Diagnostico)
-                        .addGap(227, 227, 227)))
-                .addContainerGap(151, Short.MAX_VALUE))
+                        .addGap(328, 328, 328)))
+                .addContainerGap(113, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -889,7 +999,8 @@ public class inicio extends JFrame {
                 .addGroup(jPanel3Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(jbtnCancelar_Diagnostico)
                     .addComponent(jbtnNuevo_Diagnostico)
-                    .addComponent(jbtnGenerar))
+                    .addComponent(jbtnGenerar)
+                    .addComponent(jButton1))
                 .addContainerGap(29, Short.MAX_VALUE))
         );
 
@@ -950,8 +1061,18 @@ public class inicio extends JFrame {
         jLabel23.setText("Diagnosticos:");
 
         jButtonAgregar_Diagnostico.setText("Agregar");
+        jButtonAgregar_Diagnostico.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonAgregar_DiagnosticoActionPerformed(evt);
+            }
+        });
 
         jButtonEliminar_Diagnostico.setText("Eliminar");
+        jButtonEliminar_Diagnostico.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonEliminar_DiagnosticoActionPerformed(evt);
+            }
+        });
 
         jScrollPane2.setViewportView(jList_Tratamiento_Diagnostico);
 
@@ -989,13 +1110,13 @@ public class inicio extends JFrame {
                                 .addComponent(jbtnEditar_Enf)
                                 .addGap(18, 18, 18)
                                 .addComponent(jbtnBorrar_Enf)
-                                .addGap(0, 11, Short.MAX_VALUE))
+                                .addGap(0, 41, Short.MAX_VALUE))
                             .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addComponent(jLabel23)
                                 .addGap(17, 17, 17)
                                 .addComponent(jcb_Tratamiento_Diagnostico, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jScrollPane2)
+                                .addComponent(jScrollPane2, GroupLayout.DEFAULT_SIZE, 215, Short.MAX_VALUE)
                                 .addGap(18, 18, 18)
                                 .addGroup(jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                                     .addComponent(jButtonAgregar_Diagnostico)
@@ -1143,7 +1264,7 @@ public class inicio extends JFrame {
                         .addComponent(jbtnEditar_Sintoma)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jbtnBorrar_Sintoma)))
-                .addContainerGap(122, Short.MAX_VALUE))
+                .addContainerGap(152, Short.MAX_VALUE))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -1259,7 +1380,7 @@ public class inicio extends JFrame {
                                 .addComponent(jbtnBuscar_Signo))
                             .addComponent(jtxtID_Signo, GroupLayout.PREFERRED_SIZE, 44, GroupLayout.PREFERRED_SIZE)
                             .addComponent(jtxtNombre_Signo))))
-                .addContainerGap(122, Short.MAX_VALUE))
+                .addContainerGap(152, Short.MAX_VALUE))
         );
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -1289,13 +1410,344 @@ public class inicio extends JFrame {
 
         jTabbedPane1.addTab("Signos", jPanel5);
 
-        getContentPane().add(jTabbedPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 600, 480));
+        jLabel4.setText("Ciudad:");
+
+        jLabel5.setText("Telefono:");
+
+        jLabel6.setText("Email:");
+
+        jLabel2.setText("Nombre:");
+
+        jLabel7.setText("Ingrese ID del paciente:");
+
+        jbtnNuevo.setText("Nuevo");
+        jbtnNuevo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jbtnNuevoActionPerformed(evt);
+            }
+        });
+
+        jbtnGuardar.setText("Guardar");
+        jbtnGuardar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jbtnGuardarActionPerformed(evt);
+            }
+        });
+
+        jbtnCancelar.setText("Cancelar");
+        jbtnCancelar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jbtnCancelarActionPerformed(evt);
+            }
+        });
+
+        jbtnEditar.setText("Editar");
+        jbtnEditar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jbtnEditarActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setText("ID:");
+
+        jbtnBorrar.setText("Borrar");
+        jbtnBorrar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jbtnBorrarActionPerformed(evt);
+            }
+        });
+
+        jbtnBuscar.setText("Buscar");
+        jbtnBuscar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jbtnBuscarActionPerformed(evt);
+            }
+        });
+
+        jLabel3.setText("Direccion:");
+
+        GroupLayout jPanel1Layout = new GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(122, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jbtnNuevo)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jbtnGuardar)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jbtnCancelar)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jbtnEditar)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jbtnBorrar))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel7)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jtxtDato, GroupLayout.PREFERRED_SIZE, 215, GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jbtnBuscar)))
+                .addGap(50, 50, 50))
+            .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel1Layout.createSequentialGroup()
+                    .addGap(105, 105, 105)
+                    .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                        .addComponent(jLabel2)
+                        .addComponent(jLabel1)
+                        .addComponent(jLabel3)
+                        .addComponent(jLabel4)
+                        .addComponent(jLabel5)
+                        .addComponent(jLabel6))
+                    .addGap(18, 18, 18)
+                    .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(jtxtID, GroupLayout.PREFERRED_SIZE, 45, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jtxtDireccion, GroupLayout.PREFERRED_SIZE, 269, GroupLayout.PREFERRED_SIZE)
+                        .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(jtxtEmail, GroupLayout.Alignment.LEADING)
+                            .addComponent(jtxtTelefono, GroupLayout.Alignment.LEADING)
+                            .addComponent(jtxtCiudad, GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jtxtNombre, GroupLayout.PREFERRED_SIZE, 269, GroupLayout.PREFERRED_SIZE))
+                    .addContainerGap(176, Short.MAX_VALUE)))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(36, 36, 36)
+                .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(jtxtDato, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jbtnBuscar)
+                    .addComponent(jLabel7))
+                .addGap(254, 254, 254)
+                .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(jbtnNuevo)
+                    .addComponent(jbtnGuardar)
+                    .addComponent(jbtnCancelar)
+                    .addComponent(jbtnEditar)
+                    .addComponent(jbtnBorrar))
+                .addContainerGap(110, Short.MAX_VALUE))
+            .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel1Layout.createSequentialGroup()
+                    .addGap(113, 113, 113)
+                    .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addComponent(jtxtID, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel1))
+                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                    .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addComponent(jtxtNombre, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel2))
+                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                    .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addComponent(jtxtDireccion, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel3))
+                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                    .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addComponent(jtxtCiudad, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel4))
+                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                    .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addComponent(jtxtTelefono, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel5))
+                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                    .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addComponent(jtxtEmail, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel6))
+                    .addContainerGap(170, Short.MAX_VALUE)))
+        );
+
+        jTabbedPane1.addTab("Pacientes", jPanel1);
+
+        getContentPane().add(jTabbedPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 10, 630, 480));
         jTabbedPane1.getAccessibleContext().setAccessibleName("tab6");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void jbtnBuscar_SignoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnBuscar_SignoActionPerformed
+        //        habilitar_formularios();
+        //        jbtnNuevo_Signo.setEnabled(false);
+        //        jbtnGuardar_Signo.setEnabled(false);
+        //        jbtnCancelar_Signo.setEnabled(true);
+        //        jbtnEditar_Signo.setEnabled(true);
+        //        jbtnBorrar_Signo.setEnabled(true);
+        //
+        //        signo.setId_signo(Integer.parseInt(jtxtDato_Signo.getText()));
+        //
+        //        try {
+            //
+            //            if(signo.getId_signo() >= db.getMax_id_signo()){
+                //                deshabilitar_formularios();
+                //                limpiar_formularios();
+                //                JOptionPane.showMessageDialog(null, "El número del ID es mayor del ultimo registrado", "Error de captura",JOptionPane.ERROR_MESSAGE);
+                //                index();
+                //            }else{
+                //
+                //                signo = db.Search_Sig(signo);
+                //
+                //                jtxtID_Signo.setText(String.valueOf(signo.getId_signo()));
+                //                jtxtNombre_Signo.setText(signo.getNombre());
+                //
+                //                demo.logMessage(27);
+                //
+                //            }
+            //
+            //        } catch (SQLException ex) {
+            //
+            //        }
+    }//GEN-LAST:event_jbtnBuscar_SignoActionPerformed
+
+    private void jbtnNuevo_SignoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnNuevo_SignoActionPerformed
+        jbtnNuevo_Signo.setEnabled(false);
+        jbtnGuardar_Signo.setEnabled(true);
+        jbtnCancelar_Signo.setEnabled(true);
+        jbtnEditar_Signo.setEnabled(false);
+        jbtnBorrar_Signo.setEnabled(false);
+
+        limpiar_formularios();
+        habilitar_formularios();
+
+        //        try {
+            //            jtxtID_Signo.setText(String.valueOf(db.getMax_id_signo()));
+            //        } catch (SQLException ex) {
+            //            //Logger.getLogger(inicio.class.getName()).log(Level.SEVERE, null, ex);
+            //        }
+    }//GEN-LAST:event_jbtnNuevo_SignoActionPerformed
+
+    private void jbtnBorrar_SignoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnBorrar_SignoActionPerformed
+        signo.setId(Integer.parseInt(jtxtID_Signo.getText()));
+
+        try {
+            db.delete(signo);
+        } catch (SQLException ex) {
+
+        }
+
+        index();
+        cargarSignos();
+    }//GEN-LAST:event_jbtnBorrar_SignoActionPerformed
+
+    private void jbtnEditar_SignoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnEditar_SignoActionPerformed
+        editar_signo();
+
+        try {
+            db.update(signo);
+        } catch (SQLException ex) {
+
+        }
+
+        index();
+        cargarSignos();
+    }//GEN-LAST:event_jbtnEditar_SignoActionPerformed
+
+    private void jbtnCancelar_SignoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnCancelar_SignoActionPerformed
+        index();
+    }//GEN-LAST:event_jbtnCancelar_SignoActionPerformed
+
+    //          SIGNOS
     
+    private void jbtnGuardar_SignoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnGuardar_SignoActionPerformed
+        guardar_signo();
+        index();
+        cargarSignos();
+    }//GEN-LAST:event_jbtnGuardar_SignoActionPerformed
+
+    private void jbtnNuevo_SintomaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnNuevo_SintomaActionPerformed
+        jbtnNuevo_Sintoma.setEnabled(false);
+        jbtnGuardar_Sintoma.setEnabled(true);
+        jbtnCancelar_Sintoma.setEnabled(true);
+        jbtnEditar_Sintoma.setEnabled(false);
+        jbtnBorrar_Sintoma.setEnabled(false);
+
+        limpiar_formularios();
+        habilitar_formularios();
+
+        //        try {
+            //            jtxtID_Sintoma.setText(String.valueOf(db.getMax_id_sintoma()));
+            //        } catch (SQLException ex) {
+            //            //Logger.getLogger(inicio.class.getName()).log(Level.SEVERE, null, ex);
+            //        }
+    }//GEN-LAST:event_jbtnNuevo_SintomaActionPerformed
+
+    private void jbtnBorrar_SintomaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnBorrar_SintomaActionPerformed
+
+        sintoma.setId(Integer.parseInt(jtxtID_Sintoma.getText()));
+
+        try {
+            db.delete(sintoma);
+        } catch (SQLException ex) {
+        }
+
+        index();
+        cargarSintomas();
+    }//GEN-LAST:event_jbtnBorrar_SintomaActionPerformed
+
+    private void jbtnEditar_SintomaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnEditar_SintomaActionPerformed
+        editar_sintoma();
+        index();
+        cargarSintomas();
+    }//GEN-LAST:event_jbtnEditar_SintomaActionPerformed
+
+    private void jbtnCancelar_SintomaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnCancelar_SintomaActionPerformed
+        index();
+    }//GEN-LAST:event_jbtnCancelar_SintomaActionPerformed
+
+    //          SINTOMAS
+    
+    private void jbtnGuardar_SintomaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnGuardar_SintomaActionPerformed
+        guardar_sintoma();
+        index();
+        cargarSintomas();
+    }//GEN-LAST:event_jbtnGuardar_SintomaActionPerformed
+
+    //          BUSQUEDA DE SINTOMAS Y SIGNOS
+    
+    private void jbtnBuscar_SintomaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnBuscar_SintomaActionPerformed
+        //        habilitar_formularios();
+        //        jbtnNuevo_Sintoma.setEnabled(false);
+        //        jbtnGuardar_Sintoma.setEnabled(false);
+        //        jbtnCancelar_Sintoma.setEnabled(true);
+        //        jbtnEditar_Sintoma.setEnabled(true);
+        //        jbtnBorrar_Sintoma.setEnabled(true);
+        //
+        //        sintoma.setId_sintoma(Integer.parseInt(jtxtDato_Sintoma.getText()));
+        //
+        //        try {
+            //
+            //            if(sintoma.getId_sintoma() >= db.getMax_id_sintoma()){
+                //                deshabilitar_formularios();
+                //                limpiar_formularios();
+                //                JOptionPane.showMessageDialog(null, "El número del ID es mayor del ultimo registrado", "Error de captura",JOptionPane.ERROR_MESSAGE);
+                //                index();
+                //            }else{
+                //
+                //                sintoma = db.Search_Sin(sintoma);
+                //
+                //                jtxtID_Sintoma.setText(String.valueOf(sintoma.getId_sintoma()));
+                //                jtxtNombre_Sintoma.setText(sintoma.getNombre());
+                //                jtxtZona_Sintoma.setText(sintoma.getZona());
+                //                jtxtTiempo_Sintoma.setText(sintoma.getTiempo());
+                //
+                //                demo.logMessage(26);
+                //
+                //            }
+            //
+            //        } catch (SQLException ex) {
+            //
+            //        }
+    }//GEN-LAST:event_jbtnBuscar_SintomaActionPerformed
+
+    private void jButtonAgregar_DiagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAgregar_DiagnosticoActionPerformed
+        list_Diagnostico.addDiagnostico((Diagnostico) combo_list_Diagnostico.getDiagnostico(jcb_Tratamiento_Diagnostico.getSelectedIndex()));
+    }//GEN-LAST:event_jButtonAgregar_DiagnosticoActionPerformed
+
+    //          ENFERMEDADES
+    
+    private void jbtnEditar_EnfActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnEditar_EnfActionPerformed
+        editar_tratamiento();
+        index();
+    }//GEN-LAST:event_jbtnEditar_EnfActionPerformed
+
     private void jbtnBorrar_EnfActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnBorrar_EnfActionPerformed
         tratamiento.setId(Integer.parseInt(jtxtID_Enf.getText()));
 
@@ -1315,6 +1767,7 @@ public class inicio extends JFrame {
     private void jbtnGuardar_EnfActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnGuardar_EnfActionPerformed
         guardar_tratamiento();
         index();
+        cargarTratamientos();
     }//GEN-LAST:event_jbtnGuardar_EnfActionPerformed
 
     private void jbtnNuevo_EnfActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnNuevo_EnfActionPerformed
@@ -1329,90 +1782,135 @@ public class inicio extends JFrame {
         limpiar_formularios();
         habilitar_formularios();
 
-//        try {
-//            jtxtID_Enf.setText(String.valueOf(db.getMax_id_enfermedad()));
-//        } catch (SQLException ex) {
-//            //Logger.getLogger(inicio.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-
+        //        try {
+            //            jtxtID_Enf.setText(String.valueOf(db.getMax_id_enfermedad()));
+            //        } catch (SQLException ex) {
+            //            //Logger.getLogger(inicio.class.getName()).log(Level.SEVERE, null, ex);
+            //        }
     }//GEN-LAST:event_jbtnNuevo_EnfActionPerformed
 
     private void jbtnBuscar_EnfActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnBuscar_EnfActionPerformed
-//
-//        habilitar_formularios();
-//        jbtnNuevo_Enf.setEnabled(false);
-//        jbtnGuardar_Enf.setEnabled(false);
-//        jbtnCancelar_Enf.setEnabled(true);
-//        jbtnEditar_Enf.setEnabled(true);
-//        jbtnBorrar_Enf.setEnabled(true);
-//
-//        e.setId_enfermedad(Integer.parseInt(jtxtDato_Tratamiento.getText()));
-//
-//        try {
-//
-//            if(e.getId_enfermedad() >= db.getMax_id_enfermedad()){
-//                deshabilitar_formularios();
-//                limpiar_formularios();
-//                JOptionPane.showMessageDialog(null, "El número del ID es mayor del ultimo registrado", "Error de captura",JOptionPane.ERROR_MESSAGE);
-//                index();
-//            }else{
-//
-//                e = db.Search_Enf(e);
-//
-//                jtxtID_Enf.setText(String.valueOf(e.getId_enfermedad()));
-//                jtxtNombre_Tratamiento.setText(e.getNombre());
-//                jtxtTipo_Enf.setText(e.getTipo());
-//                jtxtMedicamento_Enf.setText(e.getMed_sug());
-//
-//                demo.logMessage(6);
-//            }
-//
-//        } catch (SQLException ex) {
-//
-//        }
+        //
+        //        habilitar_formularios();
+        //        jbtnNuevo_Enf.setEnabled(false);
+        //        jbtnGuardar_Enf.setEnabled(false);
+        //        jbtnCancelar_Enf.setEnabled(true);
+        //        jbtnEditar_Enf.setEnabled(true);
+        //        jbtnBorrar_Enf.setEnabled(true);
+        //
+        //        e.setId_enfermedad(Integer.parseInt(jtxtDato_Tratamiento.getText()));
+        //
+        //        try {
+            //
+            //            if(e.getId_enfermedad() >= db.getMax_id_enfermedad()){
+                //                deshabilitar_formularios();
+                //                limpiar_formularios();
+                //                JOptionPane.showMessageDialog(null, "El número del ID es mayor del ultimo registrado", "Error de captura",JOptionPane.ERROR_MESSAGE);
+                //                index();
+                //            }else{
+                //
+                //                e = db.Search_Enf(e);
+                //
+                //                jtxtID_Enf.setText(String.valueOf(e.getId_enfermedad()));
+                //                jtxtNombre_Tratamiento.setText(e.getNombre());
+                //                jtxtTipo_Enf.setText(e.getTipo());
+                //                jtxtMedicamento_Enf.setText(e.getMed_sug());
+                //
+                //                demo.logMessage(6);
+                //            }
+            //
+            //        } catch (SQLException ex) {
+            //
+            //        }
     }//GEN-LAST:event_jbtnBuscar_EnfActionPerformed
 
+    private void jbtnGenerarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnGenerarActionPerformed
+        guardar_diagnostico();
+        index();
+        cargarDiagnosticos();
+    }//GEN-LAST:event_jbtnGenerarActionPerformed
+
+    private void jbtnCancelar_DiagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnCancelar_DiagnosticoActionPerformed
+        index();
+    }//GEN-LAST:event_jbtnCancelar_DiagnosticoActionPerformed
+
+    //          DIAGNOSTICOS
     
-    
+    private void jbtnNuevo_DiagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnNuevo_DiagnosticoActionPerformed
+        jbtnNuevo_Diagnostico.setEnabled(false);
+        jbtnCancelar_Diagnostico.setEnabled(true);
+        jbtnGenerar.setEnabled(true);
+        jbtnAgregar_Signo_Diagnostico.setEnabled(true);
+        jbtnAgregar_Sintoma_Diagnostico.setEnabled(true);
+        jbtnEliminar_Signo_Diagnostico.setEnabled(true);
+        jbtnEliminar_Sintoma_Diagnostico.setEnabled(true);
+
+        limpiar_formularios();
+        habilitar_formularios();
+
+        //        try {
+            //            jtxtID_Diagnostico.setText(String.valueOf(db.getMax_id_diagnostico()));
+            //        } catch (SQLException ex) {
+            //            //Logger.getLogger(inicio.class.getName()).log(Level.SEVERE, null, ex);
+            //        }
+    }//GEN-LAST:event_jbtnNuevo_DiagnosticoActionPerformed
+
+    private void jbtnEliminar_Sintoma_DiagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnEliminar_Sintoma_DiagnosticoActionPerformed
+        list_Sintoma_Diagnostico.removeSintoma(jList_Sintoma_Diagnostico.getSelectedIndex());
+    }//GEN-LAST:event_jbtnEliminar_Sintoma_DiagnosticoActionPerformed
+
+    private void jbtnAgregar_Sintoma_DiagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnAgregar_Sintoma_DiagnosticoActionPerformed
+        list_Sintoma_Diagnostico.addSintoma((Sintoma) combo_list_Sintoma_Diagnostico.getSintoma(jcb_Sintoma_Diagnostico.getSelectedIndex()));
+    }//GEN-LAST:event_jbtnAgregar_Sintoma_DiagnosticoActionPerformed
+
+    private void jbtnEliminar_Signo_DiagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnEliminar_Signo_DiagnosticoActionPerformed
+        list_Signo_Diagnostico.removeSigno(jList_Signo_Diagnostico.getSelectedIndex());
+    }//GEN-LAST:event_jbtnEliminar_Signo_DiagnosticoActionPerformed
+
+    //          AGREGAR Y ELIMINAR DE SINTOMAS Y SIGNOS EN LA TABLA """"DIAGNOSTICOS""""
+    private void jbtnAgregar_Signo_DiagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnAgregar_Signo_DiagnosticoActionPerformed
+        //list_Signo_Diagnostico.addElement((String) jcb_Signo_Diagnostico.getSelectedItem());
+        list_Signo_Diagnostico.addSigno((Signo) combo_list_Signo_Diagnostico.getSigno(jcb_Signo_Diagnostico.getSelectedIndex()) );
+    }//GEN-LAST:event_jbtnAgregar_Signo_DiagnosticoActionPerformed
+
     //          PACIENTES
     
     private void jbtnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnBuscarActionPerformed
-//
-//        habilitar_formularios();
-//        jbtnNuevo.setEnabled(false);
-//        jbtnGuardar.setEnabled(false);
-//        jbtnCancelar.setEnabled(true);
-//        jbtnEditar.setEnabled(true);
-//        jbtnBorrar.setEnabled(true);
-//
-//        p.setId_paciente(Integer.parseInt(jtxtDato.getText()));
-//
-//        try {
-//
-//            if(p.getId_paciente() >= db.getMax_id()){
-//                deshabilitar_formularios();
-//                limpiar_formularios();
-//                JOptionPane.showMessageDialog(null, "El número del ID es mayor del ultimo registrado", "Error de captura",JOptionPane.ERROR_MESSAGE);
-//                index();
-//            }else{
-//
-//                p = db.Search(p);
-//
-//                jtxtID.setText(String.valueOf(p.getId_paciente()));
-//                jtxtNombre.setText(p.getNombre());
-//                jtxtDireccion.setText(p.getDireccion());
-//                jtxtTelefono.setText(p.getTelefono());
-//                jtxtCiudad.setText(p.getCiudad());
-//                jtxtEmail.setText(p.getEmail());
-//
-//                demo.logMessage(7);
-//
-//            }
-//
-//        } catch (SQLException ex) {
-//
-//        }
-
+        //
+        //        habilitar_formularios();
+        //        jbtnNuevo.setEnabled(false);
+        //        jbtnGuardar.setEnabled(false);
+        //        jbtnCancelar.setEnabled(true);
+        //        jbtnEditar.setEnabled(true);
+        //        jbtnBorrar.setEnabled(true);
+        //
+        //        p.setId_paciente(Integer.parseInt(jtxtDato.getText()));
+        //
+        //        try {
+            //
+            //            if(p.getId_paciente() >= db.getMax_id()){
+                //                deshabilitar_formularios();
+                //                limpiar_formularios();
+                //                JOptionPane.showMessageDialog(null, "El número del ID es mayor del ultimo registrado", "Error de captura",JOptionPane.ERROR_MESSAGE);
+                //                index();
+                //            }else{
+                //
+                //                p = db.Search(p);
+                //
+                //                jtxtID.setText(String.valueOf(p.getId_paciente()));
+                //                jtxtNombre.setText(p.getNombre());
+                //                jtxtDireccion.setText(p.getDireccion());
+                //                jtxtTelefono.setText(p.getTelefono());
+                //                jtxtCiudad.setText(p.getCiudad());
+                //                jtxtEmail.setText(p.getEmail());
+                //
+                //                demo.logMessage(7);
+                //
+                //            }
+            //
+            //        } catch (SQLException ex) {
+            //
+            //        }
     }//GEN-LAST:event_jbtnBuscarActionPerformed
 
     private void jbtnBorrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnBorrarActionPerformed
@@ -1439,6 +1937,7 @@ public class inicio extends JFrame {
     private void jbtnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnGuardarActionPerformed
         guardar_paciente();
         index();
+        cargarPacientes();
     }//GEN-LAST:event_jbtnGuardarActionPerformed
 
     private void jbtnNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnNuevoActionPerformed
@@ -1451,257 +1950,67 @@ public class inicio extends JFrame {
         limpiar_formularios();
         habilitar_formularios();
 
-//        try {
-//            jtxtID.setText(String.valueOf(db.getMax_id()));
-//        } catch (SQLException ex) {
-//            //Logger.getLogger(inicio.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-
+        //        try {
+            //            jtxtID.setText(String.valueOf(db.getMax_id()));
+            //        } catch (SQLException ex) {
+            //            //Logger.getLogger(inicio.class.getName()).log(Level.SEVERE, null, ex);
+            //        }
     }//GEN-LAST:event_jbtnNuevoActionPerformed
 
-    
-    
-    
-    //          SINTOMAS
-    
-    private void jbtnGuardar_SintomaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnGuardar_SintomaActionPerformed
-        guardar_sintoma();
-        index();
-        cargarSintomas();
-    }//GEN-LAST:event_jbtnGuardar_SintomaActionPerformed
+    private void jButtonEliminar_DiagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEliminar_DiagnosticoActionPerformed
+        list_Diagnostico.removeDiagnostico(jList_Tratamiento_Diagnostico.getSelectedIndex());
+    }//GEN-LAST:event_jButtonEliminar_DiagnosticoActionPerformed
 
-    private void jbtnCancelar_SintomaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnCancelar_SintomaActionPerformed
-        index();
-    }//GEN-LAST:event_jbtnCancelar_SintomaActionPerformed
+    private void btn_borrar_sintoma_generar_diagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_borrar_sintoma_generar_diagnosticoActionPerformed
+        list_Sintoma_Generar_Diagnostico.removeSintoma(jList_sintomas_generar_diagnostico.getSelectedIndex());
+    }//GEN-LAST:event_btn_borrar_sintoma_generar_diagnosticoActionPerformed
 
-    private void jbtnEditar_SintomaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnEditar_SintomaActionPerformed
-        editar_sintoma();
-        index();
-        cargarSintomas();
-    }//GEN-LAST:event_jbtnEditar_SintomaActionPerformed
+    private void btn_agregar_sintoma_generar_diagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_agregar_sintoma_generar_diagnosticoActionPerformed
+        list_Sintoma_Generar_Diagnostico.addSintoma((Sintoma) combo_list_Sintoma_Generar_Diagnostico.getSintoma(jcb_sintomas_generar_diagnostico.getSelectedIndex()));
+    }//GEN-LAST:event_btn_agregar_sintoma_generar_diagnosticoActionPerformed
 
-    private void jbtnBorrar_SintomaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnBorrar_SintomaActionPerformed
+    private void btn_borrar_signo_generar_diagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_borrar_signo_generar_diagnosticoActionPerformed
+        list_Signo_Generar_Diagnostico.removeSigno(jList_signos_generar_diagnostico.getSelectedIndex());
+    }//GEN-LAST:event_btn_borrar_signo_generar_diagnosticoActionPerformed
 
-        sintoma.setId(Integer.parseInt(jtxtID_Sintoma.getText()));
+    private void btn_agregar_signo_generar_diagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_agregar_signo_generar_diagnosticoActionPerformed
+        list_Signo_Generar_Diagnostico.addSigno((Signo) combo_list_Signo_Generar_Diagnostico.getSigno(jcb_signos_generar_diagnostico.getSelectedIndex()));
+    }//GEN-LAST:event_btn_agregar_signo_generar_diagnosticoActionPerformed
 
-        try {
-            db.delete(sintoma);
-        } catch (SQLException ex) {
+    private void btn_consultar_generar_diagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_consultar_generar_diagnosticoActionPerformed
+        LinkedList<Signo> signosAgregados = new LinkedList();
+        LinkedList<Sintoma> sintomasAgregados = new LinkedList();
+        
+        //SE obtienen los signos y sintomas agregados
+        for(int i = 0; i < list_Signo_Generar_Diagnostico.getSize(); i++) {
+            signosAgregados.add(list_Signo_Generar_Diagnostico.getSigno(i));
         }
-
-        index();
-        cargarSintomas();
-    }//GEN-LAST:event_jbtnBorrar_SintomaActionPerformed
-
-    private void jbtnNuevo_SintomaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnNuevo_SintomaActionPerformed
-        jbtnNuevo_Sintoma.setEnabled(false);
-        jbtnGuardar_Sintoma.setEnabled(true);
-        jbtnCancelar_Sintoma.setEnabled(true);
-        jbtnEditar_Sintoma.setEnabled(false);
-        jbtnBorrar_Sintoma.setEnabled(false);
-
-        limpiar_formularios();
-        habilitar_formularios();
-
-//        try {
-//            jtxtID_Sintoma.setText(String.valueOf(db.getMax_id_sintoma()));
-//        } catch (SQLException ex) {
-//            //Logger.getLogger(inicio.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-    }//GEN-LAST:event_jbtnNuevo_SintomaActionPerformed
-
-    
-    
-    //          SIGNOS
-    
-    private void jbtnGuardar_SignoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnGuardar_SignoActionPerformed
-        guardar_signo();
-        index();
-        cargarSignos();
-    }//GEN-LAST:event_jbtnGuardar_SignoActionPerformed
-
-    private void jbtnCancelar_SignoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnCancelar_SignoActionPerformed
-        index();
-    }//GEN-LAST:event_jbtnCancelar_SignoActionPerformed
-
-    private void jbtnEditar_SignoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnEditar_SignoActionPerformed
-        editar_signo();
-
-        try {
-            db.update(signo);
-        } catch (SQLException ex) {
-
+        for(int i = 0; i < list_Sintoma_Generar_Diagnostico.getSize(); i++) {
+            sintomasAgregados.add(list_Sintoma_Generar_Diagnostico.getSintoma(i));
         }
-
-        index();
-        cargarSignos();
-    }//GEN-LAST:event_jbtnEditar_SignoActionPerformed
-
-    private void jbtnBorrar_SignoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnBorrar_SignoActionPerformed
-        signo.setId(Integer.parseInt(jtxtID_Signo.getText()));
-
-        try {
-            db.delete(signo);
-        } catch (SQLException ex) {
-            
+        
+        //Se inicia el motor de inferencia y los resultados son guardados en un hashmap
+        InferenceEngine inference = new InferenceEngine(signosAgregados, sintomasAgregados);
+        HashMap<LinkedList<Tratamiento>, LinkedList<Diagnostico>> resultados = inference.process();
+        
+        //Should only iterate once, manda los resultados a sus respectivas listas
+        for(Map.Entry<LinkedList<Tratamiento>, LinkedList<Diagnostico>> entry : resultados.entrySet()) {
+            resultadosTratamiento = entry.getKey();
+            resultadosDiagnostico = entry.getValue();
         }
+        
+        //Imprime los resultados
+        for(Tratamiento t : resultadosTratamiento) {
+          jTextArea_Tratamiento_Generar_Diagnostico.append(t.getTexto() + ", ");
+        }
+        for(Diagnostico d : resultadosDiagnostico) {
+            jTextArea_Diagnostico_Generar.append(d.getTexto() + ", ");
+        }
+    }//GEN-LAST:event_btn_consultar_generar_diagnosticoActionPerformed
 
-        index();
-        cargarSignos();
-    }//GEN-LAST:event_jbtnBorrar_SignoActionPerformed
-
-    private void jbtnNuevo_SignoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnNuevo_SignoActionPerformed
-        jbtnNuevo_Signo.setEnabled(false);
-        jbtnGuardar_Signo.setEnabled(true);
-        jbtnCancelar_Signo.setEnabled(true);
-        jbtnEditar_Signo.setEnabled(false);
-        jbtnBorrar_Signo.setEnabled(false);
-
-        limpiar_formularios();
-        habilitar_formularios();
-
-//        try {
-//            jtxtID_Signo.setText(String.valueOf(db.getMax_id_signo()));
-//        } catch (SQLException ex) {
-//            //Logger.getLogger(inicio.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-    }//GEN-LAST:event_jbtnNuevo_SignoActionPerformed
-
-    
-    //          DIAGNOSTICOS
-    
-    private void jbtnNuevo_DiagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnNuevo_DiagnosticoActionPerformed
-        jbtnNuevo_Diagnostico.setEnabled(false);
-        jbtnCancelar_Diagnostico.setEnabled(true);
-        jbtnGenerar.setEnabled(true);
-        jbtnAgregar_Signo_Diagnostico.setEnabled(true);
-        jbtnAgregar_Sintoma_Diagnostico.setEnabled(true);
-        jbtnEliminar_Signo_Diagnostico.setEnabled(true);
-        jbtnEliminar_Sintoma_Diagnostico.setEnabled(true);
-
-        limpiar_formularios();
-        habilitar_formularios();
-
-//        try {
-//            jtxtID_Diagnostico.setText(String.valueOf(db.getMax_id_diagnostico()));
-//        } catch (SQLException ex) {
-//            //Logger.getLogger(inicio.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-    }//GEN-LAST:event_jbtnNuevo_DiagnosticoActionPerformed
-
-    private void jbtnCancelar_DiagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnCancelar_DiagnosticoActionPerformed
-        index();
-    }//GEN-LAST:event_jbtnCancelar_DiagnosticoActionPerformed
-
-    private void jbtnGenerarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnGenerarActionPerformed
-        guardar_diagnostico();
-        index();
-        cargarDiagnosticos();
-    }//GEN-LAST:event_jbtnGenerarActionPerformed
-
-    
-    
-    //          BUSQUEDA DE SINTOMAS Y SIGNOS
-    
-    private void jbtnBuscar_SintomaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnBuscar_SintomaActionPerformed
-//        habilitar_formularios();
-//        jbtnNuevo_Sintoma.setEnabled(false);
-//        jbtnGuardar_Sintoma.setEnabled(false);
-//        jbtnCancelar_Sintoma.setEnabled(true);
-//        jbtnEditar_Sintoma.setEnabled(true);
-//        jbtnBorrar_Sintoma.setEnabled(true);
-//
-//        sintoma.setId_sintoma(Integer.parseInt(jtxtDato_Sintoma.getText()));
-//
-//        try {
-//
-//            if(sintoma.getId_sintoma() >= db.getMax_id_sintoma()){
-//                deshabilitar_formularios();
-//                limpiar_formularios();
-//                JOptionPane.showMessageDialog(null, "El número del ID es mayor del ultimo registrado", "Error de captura",JOptionPane.ERROR_MESSAGE);
-//                index();
-//            }else{
-//
-//                sintoma = db.Search_Sin(sintoma);
-//
-//                jtxtID_Sintoma.setText(String.valueOf(sintoma.getId_sintoma()));
-//                jtxtNombre_Sintoma.setText(sintoma.getNombre());
-//                jtxtZona_Sintoma.setText(sintoma.getZona());
-//                jtxtTiempo_Sintoma.setText(sintoma.getTiempo());
-//
-//                demo.logMessage(26);
-//
-//            }
-//
-//        } catch (SQLException ex) {
-//
-//        }
-    }//GEN-LAST:event_jbtnBuscar_SintomaActionPerformed
-
-    private void jbtnBuscar_SignoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnBuscar_SignoActionPerformed
-//        habilitar_formularios();
-//        jbtnNuevo_Signo.setEnabled(false);
-//        jbtnGuardar_Signo.setEnabled(false);
-//        jbtnCancelar_Signo.setEnabled(true);
-//        jbtnEditar_Signo.setEnabled(true);
-//        jbtnBorrar_Signo.setEnabled(true);
-//
-//        signo.setId_signo(Integer.parseInt(jtxtDato_Signo.getText()));
-//
-//        try {
-//
-//            if(signo.getId_signo() >= db.getMax_id_signo()){
-//                deshabilitar_formularios();
-//                limpiar_formularios();
-//                JOptionPane.showMessageDialog(null, "El número del ID es mayor del ultimo registrado", "Error de captura",JOptionPane.ERROR_MESSAGE);
-//                index();
-//            }else{
-//
-//                signo = db.Search_Sig(signo);
-//
-//                jtxtID_Signo.setText(String.valueOf(signo.getId_signo()));
-//                jtxtNombre_Signo.setText(signo.getNombre());
-//
-//                demo.logMessage(27);
-//
-//            }
-//
-//        } catch (SQLException ex) {
-//
-//        }
-    }//GEN-LAST:event_jbtnBuscar_SignoActionPerformed
-
-    
-    
-    
-    
-    //          AGREGAR Y ELIMINAR DE SINTOMAS Y SIGNOS EN LA TABLA """"DIAGNOSTICOS""""
-    private void jbtnAgregar_Signo_DiagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnAgregar_Signo_DiagnosticoActionPerformed
-        //list_Signo_Diagnostico.addElement((String) jcb_Signo_Diagnostico.getSelectedItem());
-        list_Signo_Diagnostico.addSigno((Signo) combo_list_Signo_Diagnostico.getSigno(jcb_Signo_Diagnostico.getSelectedIndex()) );
-    }//GEN-LAST:event_jbtnAgregar_Signo_DiagnosticoActionPerformed
-
-    private void jbtnEliminar_Signo_DiagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnEliminar_Signo_DiagnosticoActionPerformed
-        list_Signo_Diagnostico.removeSigno(jList_Signo_Diagnostico.getSelectedIndex());
-    }//GEN-LAST:event_jbtnEliminar_Signo_DiagnosticoActionPerformed
-
-    private void jbtnAgregar_Sintoma_DiagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnAgregar_Sintoma_DiagnosticoActionPerformed
-        list_Sintoma_Diagnostico.addSintoma((Sintoma) combo_list_Sintoma_Diagnostico.getSintoma(jcb_Sintoma_Diagnostico.getSelectedIndex()));
-    }//GEN-LAST:event_jbtnAgregar_Sintoma_DiagnosticoActionPerformed
-
-    private void jbtnEliminar_Sintoma_DiagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnEliminar_Sintoma_DiagnosticoActionPerformed
-        list_Sintoma_Diagnostico.removeSintoma(jList_Sintoma_Diagnostico.getSelectedIndex());
-    }//GEN-LAST:event_jbtnEliminar_Sintoma_DiagnosticoActionPerformed
-
-    //          ENFERMEDADES
-    
-    private void jbtnEditar_EnfActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnEditar_EnfActionPerformed
-        editar_tratamiento();
-        index();
-    }//GEN-LAST:event_jbtnEditar_EnfActionPerformed
-
-    
-    
+    private void btn_limpiar_generar_diagnosticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_limpiar_generar_diagnosticoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btn_limpiar_generar_diagnosticoActionPerformed
 
     public static void main(String args[]) {
 
@@ -1713,22 +2022,34 @@ public class inicio extends JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private JButton btn_agregar_signo_generar_diagnostico;
+    private JButton btn_agregar_sintoma_generar_diagnostico;
+    private JButton btn_borrar_signo_generar_diagnostico;
+    private JButton btn_borrar_sintoma_generar_diagnostico;
+    private JButton btn_consultar_generar_diagnostico;
+    private JButton btn_limpiar_generar_diagnostico;
+    private JButton jButton1;
     private JButton jButtonAgregar_Diagnostico;
     private JButton jButtonEliminar_Diagnostico;
     private JLabel jLabel1;
     private JLabel jLabel10;
     private JLabel jLabel11;
     private JLabel jLabel12;
+    private JLabel jLabel13;
     private JLabel jLabel14;
+    private JLabel jLabel15;
     private JLabel jLabel16;
     private JLabel jLabel17;
+    private JLabel jLabel18;
     private JLabel jLabel19;
     private JLabel jLabel2;
+    private JLabel jLabel20;
     private JLabel jLabel21;
     private JLabel jLabel22;
     private JLabel jLabel23;
     private JLabel jLabel24;
     private JLabel jLabel25;
+    private JLabel jLabel26;
     private JLabel jLabel27;
     private JLabel jLabel28;
     private JLabel jLabel29;
@@ -1742,17 +2063,27 @@ public class inicio extends JFrame {
     private JList<String> jList_Signo_Diagnostico;
     private JList<String> jList_Sintoma_Diagnostico;
     private JList<String> jList_Tratamiento_Diagnostico;
+    private JList<String> jList_signos_generar_diagnostico;
+    private JList<String> jList_sintomas_generar_diagnostico;
     private JPanel jPanel1;
     private JPanel jPanel2;
     private JPanel jPanel3;
     private JPanel jPanel4;
     private JPanel jPanel5;
+    private JPanel jPanel6;
     private JScrollPane jScrollPane1;
     private JScrollPane jScrollPane2;
     private JScrollPane jScrollPane3;
     private JScrollPane jScrollPane4;
+    private JScrollPane jScrollPane5;
+    private JScrollPane jScrollPane6;
+    private JScrollPane jScrollPane7;
+    private JScrollPane jScrollPane8;
     private JTabbedPane jTabbedPane1;
+    private JTabbedPane jTabbedPane2;
     private JTextArea jTextAreaTratamiento;
+    private JTextArea jTextArea_Diagnostico_Generar;
+    private JTextArea jTextArea_Tratamiento_Generar_Diagnostico;
     private JButton jbtnAgregar_Signo_Diagnostico;
     private JButton jbtnAgregar_Sintoma_Diagnostico;
     private JButton jbtnBorrar;
@@ -1788,6 +2119,8 @@ public class inicio extends JFrame {
     private JComboBox<String> jcb_Signo_Diagnostico;
     private JComboBox<String> jcb_Sintoma_Diagnostico;
     private JComboBox<String> jcb_Tratamiento_Diagnostico;
+    private JComboBox<String> jcb_signos_generar_diagnostico;
+    private JComboBox<String> jcb_sintomas_generar_diagnostico;
     private JTextField jtxtCiudad;
     private JTextField jtxtDato;
     private JTextField jtxtDato_Signo;
