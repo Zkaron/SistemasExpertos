@@ -11,9 +11,11 @@ import java.util.LinkedList;
  */
 public class KnowledgeBase {
     Connection conn = null;
-    String url = "jdbc:mysql://192.168.1.68:3306/diagnostico";
+    String url = "jdbc:mysql://localhost:3306/diagnostico";
+//    String url = "jdbc:mysql://192.168.1.68:3306/diagnostico";
     String user = "root";
-    String pwd = "admin";
+    String pwd = "";
+//    String pwd = "admin";
 
     public KnowledgeBase() {
         connect();
@@ -240,6 +242,11 @@ public class KnowledgeBase {
 
     public void delete(Tratamiento t) throws SQLException {
         PreparedStatement st = conn.prepareStatement("DELETE FROM tratamiento WHERE id='" + t.getId() + "'");
+        st.execute();
+    }
+
+    public void delete(Tratamiento t, Diagnostico d) throws SQLException {
+        PreparedStatement st = conn.prepareStatement("DELETE FROM tratamiento WHERE diagnostico_id='" + d.getId() + "'");
         st.execute();
     }
 

@@ -27,9 +27,10 @@ public class InferenceEngine {
     private boolean isRemoteConnected = false;
     
     Connection conn = null;
-    String url = "jdbc:mysql://192.168.1.68:3306/diagnostico";
+    String url = "jdbc:mysql://localhost/diagnostico";
+//    String url = "jdbc:mysql://192.168.1.68:3306/diagnostico";
     String user = "root";
-    String pwd = "admin";
+    String pwd = "";
 
     
     public InferenceEngine(LinkedList<Signo> signos, LinkedList<Sintoma> sintomas) {
@@ -49,9 +50,10 @@ public class InferenceEngine {
     }
 
     public InferenceEngine(LinkedList<Signo> signos, LinkedList<Sintoma> sintomas, HashMap<LinkedList<Tratamiento>, LinkedList<Diagnostico>> resultadosLocales, String url, String user, String pwd) {
-//        this.url = url;
-//        this.user = user;
-//        this.pwd = pwd;
+        this.url = url;
+        this.user = user;
+        this.pwd = pwd;
+
         this.resultadosLocales = resultadosLocales;
         this.signos = signos;
         this.sintomas = sintomas;
@@ -74,9 +76,6 @@ public class InferenceEngine {
         LinkedList<Tratamiento> tratamientosFinales = new LinkedList<>();
         LinkedList<Diagnostico> diagnosticosFinales = new LinkedList<>();
 
-        int numeroSignos = signos.size();
-        int numeroSintomas = sintomas.size();
-        
         for(int i = 0; i < signos.size(); i++) {
             LinkedList<Diagnostico> diagnosticos = new LinkedList<>();
             try {
@@ -117,7 +116,7 @@ public class InferenceEngine {
             }
         }
         
-        if(maxValue > 0) {     
+        if(maxValue > 0) {
             //Se obtienen todos los diagnosticos con mayor ponderacion
             for(Map.Entry<Diagnostico, Integer> entry : map.entrySet()) {
                 if(entry.getValue() == maxValue) {
@@ -143,7 +142,8 @@ public class InferenceEngine {
             e.printStackTrace();
         }
         if(isRemoteConnected) {
-            Learn learn = new Learn(resultadosLocales, resultadosFinales, numeroSignos, numeroSintomas);
+            Learn learn = new Learn(resultadosLocales, resultadosFinales, signos, sintomas, url, user, pwd);
+            learn.actualizarConocimiento();
         }
 
         return resultadosFinales;

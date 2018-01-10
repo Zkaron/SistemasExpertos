@@ -31,4 +31,20 @@ public class Tratamiento {
     public void setDiagnosticoId(int diagnosticoId) {
         this.diagnosticoId = diagnosticoId;
     }
+
+    @Override
+    public int hashCode()
+    {
+        return texto.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if(!(o instanceof Tratamiento)) {
+            return false;
+        }
+        Tratamiento t = (Tratamiento)o;
+        return t.getId() == id && t.getTexto().equals(this.getTexto()) && t.getDiagnosticoId() == this.getDiagnosticoId();
+    }
 }
