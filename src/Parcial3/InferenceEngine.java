@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import javax.swing.JOptionPane;
@@ -18,11 +19,10 @@ import javax.swing.JOptionPane;
  * Created by Erik on 9/19/2017.
  */
 public class InferenceEngine {
-    public int signosySintomasRequeridos;
     private LinkedList<Signo> signos;
     private LinkedList<Sintoma> sintomas;
     private HashMap<Diagnostico, Integer> map;
-    private HashMap<LinkedList<Tratamiento>, LinkedList<Diagnostico>> resultadosLocales;
+    private LinkedList<HashMap<Diagnostico, LinkedList<Tratamiento>>> diagnosticosConTratamientosLocales;
 
     private boolean isRemoteConnected = false;
     
@@ -49,15 +49,15 @@ public class InferenceEngine {
         }
     }
 
-    public InferenceEngine(LinkedList<Signo> signos, LinkedList<Sintoma> sintomas, HashMap<LinkedList<Tratamiento>, LinkedList<Diagnostico>> resultadosLocales, String url, String user, String pwd) {
+    public InferenceEngine(LinkedList<Signo> signos, LinkedList<Sintoma> sintomas, LinkedList<HashMap<Diagnostico, LinkedList<Tratamiento>>> resultadosLocales, String url, String user, String pwd) {
         this.url = url;
         this.user = user;
         this.pwd = pwd;
 
-        this.resultadosLocales = resultadosLocales;
+        this.diagnosticosConTratamientosLocales = resultadosLocales;
         this.signos = signos;
         this.sintomas = sintomas;
-        map = new HashMap<>();
+        map = new LinkedHashMap<>();
 
         try {
             DriverManager.registerDriver(new org.gjt.mm.mysql.Driver());
@@ -71,12 +71,13 @@ public class InferenceEngine {
         isRemoteConnected = true;
     }
     
-    public HashMap<LinkedList<Tratamiento>, LinkedList<Diagnostico>> process() {
-        HashMap<LinkedList<Tratamiento>, LinkedList<Diagnostico>> resultadosFinales = new HashMap<>();
-        LinkedList<Tratamiento> tratamientosFinales = new LinkedList<>();
+    public LinkedList<HashMap<Diagnostico, LinkedList<Tratamiento>>> process() {
+
+        LinkedList<HashMap<Diagnostico, LinkedList<Tratamiento>>> diagnosticosConTratamientos = new LinkedList<>();
+//        LinkedList<Tratamiento> tratamientosFinales = new LinkedList<>();
         LinkedList<Diagnostico> diagnosticosFinales = new LinkedList<>();
 
-        for(int i = 0; i < signos.size(); i++) {
+        for(int i = 0; i < signos.size(); i++) { //Por cada signo obtener sus posibles diagnosticos
             LinkedList<Diagnostico> diagnosticos = new LinkedList<>();
             try {
                 diagnosticos = queryDiagnosticoBySigno(signos.get(i));
@@ -84,7 +85,7 @@ public class InferenceEngine {
                 e.printStackTrace();
             }
 
-            for(int j = 0; j < diagnosticos.size(); j++) {
+            for(int j = 0; j < diagnosticos.size(); j++) {   //Va sumando la frecuencia de cada diagnostico de acuerdo a los signos
                 if(!map.containsKey(diagnosticos.get(j))) {
                     map.put(diagnosticos.get(j), 1);
                 } else {
@@ -93,14 +94,14 @@ public class InferenceEngine {
             }
         }
         
-        for(int i = 0; i < sintomas.size(); i++) {
+        for(int i = 0; i < sintomas.size(); i++) {   //Por cada sintoma obtener sus posibles diagnosticos
             LinkedList<Diagnostico> diagnosticos = new LinkedList<>();
             try {
                 diagnosticos = queryDiagnosticoBySintoma(sintomas.get(i));
             } catch(SQLException e) {
                 e.printStackTrace();
             }
-            for(int j = 0; j < diagnosticos.size(); j++) {
+            for(int j = 0; j < diagnosticos.size(); j++) {   //Va sumando la frecuencia de cada diagnostico de acuerdo a los sintomas
                 if(!map.containsKey(diagnosticos.get(j))) {
                     map.put(diagnosticos.get(j), 1);
                 } else {
@@ -110,7 +111,7 @@ public class InferenceEngine {
         }
         
         int maxValue = 0;
-        for(Diagnostico d : map.keySet()) {
+        for(Diagnostico d : map.keySet()) {   //Encuentra el/los diagnostico/s mas repetido/s
             if(maxValue < map.get(d)) {
                 maxValue = map.get(d);
             }
@@ -127,13 +128,19 @@ public class InferenceEngine {
             //Se encuentran los tratamientos a través de los diagnosticos obtenidos
             for(Diagnostico d : diagnosticosFinales) {
                 try {
-                    tratamientosFinales = queryTratamientoByDiagnostico(d);
+                    LinkedList<Tratamiento> tratamientosFinales = queryTratamientoByDiagnostico(d);
+                    HashMap<Diagnostico, LinkedList<Tratamiento>> diagnosticoConTratamientos = new LinkedHashMap<>();
+                    diagnosticoConTratamientos.put(d, tratamientosFinales);
+                    diagnosticosConTratamientos.add(diagnosticoConTratamientos);
                 } catch(SQLException e) {
                     e.printStackTrace();
                 }
             }
-            
-            resultadosFinales.put(tratamientosFinales, diagnosticosFinales);
+        }
+
+        if(isRemoteConnected) {
+            Learn learn = new Learn(diagnosticosConTratamientosLocales, diagnosticosConTratamientos, signos, sintomas, url, user, pwd);
+            learn.actualizarConocimiento();
         }
 
         try {
@@ -141,12 +148,8 @@ public class InferenceEngine {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        if(isRemoteConnected) {
-            Learn learn = new Learn(resultadosLocales, resultadosFinales, signos, sintomas, url, user, pwd);
-            learn.actualizarConocimiento();
-        }
 
-        return resultadosFinales;
+        return diagnosticosConTratamientos;
     }
     
     private LinkedList<Diagnostico> queryDiagnosticoBySigno(Signo signo) throws SQLException {

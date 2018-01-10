@@ -17,8 +17,8 @@ public class inicio extends JFrame {
     Sintoma sintoma;
     Signo signo;
 
-//    private String remoteUrl = "jdbc:mysql://192.168.84.203:3306/diagnostico";
-    private String remoteUrl = "jdbc:mysql://192.168.1.68:3306/diagnostico";
+    private String remoteUrl = "jdbc:mysql://192.168.84.244:3306/diagnostico";
+//    private String remoteUrl = "jdbc:mysql://192.168.1.155:3306/diagnostico";
     private String remoteUser = "root";
     private String remotePwd = "admin";
 
@@ -268,8 +268,8 @@ public class inicio extends JFrame {
             Diagnostico nombreDiagnostico = new Diagnostico();
             nombreDiagnostico.setTexto(jList_Tratamiento_Diagnostico.getModel().getElementAt(i));
             try {
-                Diagnostico d;
-                d = db.searchByName(nombreDiagnostico);
+                Diagnostico d = list_Diagnostico.getDiagnostico(0);  //Por ahora solo obtenemos el primero
+//                d = db.searchByName(nombreDiagnostico);
                 tratamiento.setDiagnosticoId(d.getId());
                 db.save(tratamiento);
                 System.out.println("Se guardó '" + tratamiento.getTexto() + "'");
@@ -1998,23 +1998,27 @@ public class inicio extends JFrame {
         
         //Se inicia el motor de inferencia y los resultados son guardados en un hashmap
         InferenceEngine inference = new InferenceEngine(signosAgregados, sintomasAgregados);
-        HashMap<LinkedList<Tratamiento>, LinkedList<Diagnostico>> resultados = inference.process();
+        LinkedList<HashMap<Diagnostico, LinkedList<Tratamiento>>> resultados = inference.process();
         
-        //Should only iterate once, manda los resultados a sus respectivas listas
-        for(Map.Entry<LinkedList<Tratamiento>, LinkedList<Diagnostico>> entry : resultados.entrySet()) {
-            resultadosTratamiento = entry.getKey();
-            resultadosDiagnostico = entry.getValue();
+        //manda los resultados a sus respectivas listas
+        resultadosDiagnostico = new LinkedList<>();
+        resultadosTratamiento = new LinkedList<>();
+        for(HashMap<Diagnostico, LinkedList<Tratamiento>> map : resultados) {
+            for (Map.Entry<Diagnostico, LinkedList<Tratamiento>> entry : map.entrySet()) {
+                resultadosDiagnostico.add(entry.getKey());
+                resultadosTratamiento = entry.getValue();
+            }
         }
         
         //Imprime los resultados
-        if(resultadosTratamiento != null) {
+        if(resultadosTratamiento.size() > 0) {  //Si hay resultados
             for (Tratamiento t : resultadosTratamiento) {
                 jTextArea_Tratamiento_Generar_Diagnostico.append(t.getTexto() + ", ");
             }
         }else {
             jTextArea_Tratamiento_Generar_Diagnostico.append("No se encontró tratamiento alguno");
         }
-        if(resultadosDiagnostico != null) {
+        if(resultadosDiagnostico.size() > 0) {   //Si hay resultados
             for (Diagnostico d : resultadosDiagnostico) {
                 jTextArea_Diagnostico_Generar.append(d.getTexto() + ", ");
             }
@@ -2024,14 +2028,17 @@ public class inicio extends JFrame {
 
         //Conectar con base de datos remota
         InferenceEngine remoteInference = new InferenceEngine(signosAgregados, sintomasAgregados, resultados, remoteUrl, remoteUser, remotePwd);
-
-        HashMap<LinkedList<Tratamiento>, LinkedList<Diagnostico>> resultadosRemotos = remoteInference.process();
+        LinkedList<HashMap<Diagnostico, LinkedList<Tratamiento>>> resultadosRemotos = remoteInference.process();
 
         //Should only iterate once, manda los resultados a sus respectivas listas
-        for(Map.Entry<LinkedList<Tratamiento>, LinkedList<Diagnostico>> entry : resultadosRemotos.entrySet()) {
-            resultadosTratamientoRemoto = entry.getKey();
-            resultadosDiagnosticoRemoto = entry.getValue();
-        }
+//        for(HashMap<Diagnostico, LinkedList<Tratamiento>> map : resultadosRemotos) {
+//            for (Map.Entry<Diagnostico, LinkedList<Tratamiento>> entry : map.entrySet()) {
+//                resultadosDiagnosticoRemoto.add(entry.getKey());
+//                resultadosTratamientoRemoto = entry.getValue();
+//            }
+//        }
+
+        //Imprimir aqui resultados en otro JTextArea
 
     }//GEN-LAST:event_btn_consultar_generar_diagnosticoActionPerformed
 

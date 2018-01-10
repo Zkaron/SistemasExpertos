@@ -12,7 +12,7 @@ import java.util.LinkedList;
 public class KnowledgeBase {
     Connection conn = null;
     String url = "jdbc:mysql://localhost:3306/diagnostico";
-//    String url = "jdbc:mysql://192.168.1.68:3306/diagnostico";
+//    String url = "jdbc:mysql://192.168.84.244:3306/diagnostico";
     String user = "root";
     String pwd = "";
 //    String pwd = "admin";
@@ -400,21 +400,36 @@ public class KnowledgeBase {
         st.executeUpdate();
     }
 
-//    public Sintoma search(Sintoma s) throws SQLException {
-//        ResultSet rs;
-//        PreparedStatement st = conn.prepareStatement("SELECT * FROM sintoma WHERE id='" + s.getId() + "'");
-//        st.executeQuery();
-//        rs = st.getResultSet();
-//
-//        while (rs.next()) {
-//            s.setId(rs.getInt(1));
-//            s.setNombre(rs.getString(2));
-//        }
-//        return s;
-//    }
+    public SignoDiagnostico search(Signo s, Diagnostico d) throws SQLException {
+        ResultSet rs;
+        PreparedStatement st = conn.prepareStatement("SELECT * FROM signo_diagnostico WHERE signo_id='" + s.getId() + "' AND diagnostico_id='" + d.getId() + "'");
+        st.executeQuery();
+        rs = st.getResultSet();
+        SignoDiagnostico sd = new SignoDiagnostico();
+        while (rs.next()) {
+            sd.setSignoId(rs.getInt(1));
+            sd.setDiagnosticoId(rs.getInt(2));
+        }
+        return sd;
+    }
 
-    public void delete(Signo s, Diagnostico d) throws SQLException {
-        PreparedStatement st = conn.prepareStatement("DELETE FROM signo_diagnostico WHERE signo_id='" + s.getId() + "' AND diagnostico_id='" + d.getId() + "'");
+    public LinkedList<SignoDiagnostico> searchSignoDiagnosticoByDiagnostico(Diagnostico d) throws SQLException{
+        ResultSet rs;
+        PreparedStatement st = conn.prepareStatement("SELECT * FROM signo_diagnostico WHERE diagnostico_id='" + d.getId() + "'");
+        st.executeQuery();
+        rs = st.getResultSet();
+        LinkedList<SignoDiagnostico> sdList = new LinkedList<>();
+        while (rs.next()) {
+            SignoDiagnostico sd = new SignoDiagnostico();
+            sd.setSignoId(rs.getInt(1));
+            sd.setDiagnosticoId(rs.getInt(2));
+            sdList.add(sd);
+        }
+        return sdList;
+    }
+
+    public void deleteSignoDiagnostico(SignoDiagnostico sd) throws SQLException {
+        PreparedStatement st = conn.prepareStatement("DELETE FROM signo_diagnostico WHERE signo_id='" + sd.getSignoId() + "' AND diagnostico_id='" + sd.getDiagnosticoId() + "'");
         st.execute();
     }
 
@@ -438,8 +453,36 @@ public class KnowledgeBase {
         st.executeUpdate();
     }
 
-    public void delete(Sintoma s, Diagnostico d) throws SQLException {
-        PreparedStatement st = conn.prepareStatement("DELETE FROM sintoma_diagnostico WHERE sintoma_id='" + s.getId() + "' AND diagnostico_id='" + d.getId() + "'");
+    public SintomaDiagnostico search(Sintoma s, Diagnostico d) throws SQLException {
+        ResultSet rs;
+        PreparedStatement st = conn.prepareStatement("SELECT * FROM sintoma_diagnostico WHERE sintoma_id='" + s.getId() + "' AND diagnostico_id='" + d.getId() + "'");
+        st.executeQuery();
+        rs = st.getResultSet();
+        SintomaDiagnostico sd = new SintomaDiagnostico();
+        while (rs.next()) {
+            sd.setSintomaId(rs.getInt(1));
+            sd.setDiagnosticoId(rs.getInt(2));
+        }
+        return sd;
+    }
+
+    public LinkedList<SintomaDiagnostico> searchSintomaDiagnosticoByDiagnostico(Diagnostico d) throws SQLException{
+        ResultSet rs;
+        PreparedStatement st = conn.prepareStatement("SELECT * FROM sintoma_diagnostico WHERE diagnostico_id='" + d.getId() + "'");
+        st.executeQuery();
+        rs = st.getResultSet();
+        LinkedList<SintomaDiagnostico> sdList = new LinkedList<>();
+        while (rs.next()) {
+            SintomaDiagnostico sd = new SintomaDiagnostico();
+            sd.setSintomaId(rs.getInt(1));
+            sd.setDiagnosticoId(rs.getInt(2));
+            sdList.add(sd);
+        }
+        return sdList;
+    }
+
+    public void deleteSintomaDiagnostico(SintomaDiagnostico sd) throws SQLException {
+        PreparedStatement st = conn.prepareStatement("DELETE FROM sintoma_diagnostico WHERE sintoma_id='" + sd.getSintomaId() + "' AND diagnostico_id='" + sd.getDiagnosticoId() + "'");
         st.execute();
     }
 
